@@ -71,11 +71,10 @@ make 1_graph_metrics
 make 2_reuse
 make 3_load_balance
 make 4_xb_pro_inst
-make 5_runtime
-make 6_runtime_four_bbss
-make 7_inst_rate_four_bbss
-make 8_memory_four_bbss
-make 9_scalability_test
+make 5_runtime_four_bbss
+make 6_inst_rate_four_bbss
+make 7_memory_four_bbss
+make 8_scalability_test
 ```
 
 Logs and generated outputs are written under `tmp/` and `results/`.

@@ -11,8 +11,7 @@ make -C "$PROJECT_DIR" \
     2_reuse \
     3_load_balance \
     4_xb_pro_inst \
-    5_runtime \
-    6_runtime_four_bbss \
-    7_inst_rate_four_bbss \
-    8_memory_four_bbss \
-    9_scalability_test
+    5_runtime_four_bbss \
+    6_inst_rate_four_bbss \
+    7_memory_four_bbss \
+    8_scalability_test
