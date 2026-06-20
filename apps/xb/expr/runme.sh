@@ -10,7 +10,9 @@ make -C "$PROJECT_DIR" \
     1_graph_metrics \
     2_reuse \
     3_load_balance \
-    4_runtime \
-    5_inst_rate \
-    6_xb_pro_inst \
-    7_memory
+    4_xb_pro_inst \
+    5_runtime \
+    6_runtime_four_bbss \
+    7_inst_rate_four_bbss \
+    8_memory_four_bbss \
+    9_scalability_test

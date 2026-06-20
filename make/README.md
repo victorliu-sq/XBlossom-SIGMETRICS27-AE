@@ -35,16 +35,9 @@ and `prepare_logs`.
 | `make 3_load_balance` | CPU/GPU load-balance experiments. |
 | `make 4_xb_pro_inst` | XB-Pro instruction experiments. |
 | `make 5_runtime` | Runtime experiments. |
-| `make 6_inst_rate` | Instruction-rate experiments. |
-| `make 7_memory` | Memory experiments. |
-| `make 8_runtime_four` | Four-algorithm runtime experiments. |
-| `make 9_inst_rate_four` | Four-algorithm instruction-rate experiments. |
-| `make 10_memory_four` | Four-algorithm memory experiments. |
-| `make 11_throughput` | Throughput experiments. |
-| `make 12_runtime_four_bbss` | MultiSSSP runtime experiments. |
-| `make 13_inst_rate_four_bbss` | MultiSSSP instruction-rate experiments. |
-| `make 14_memory_four_bbss` | MultiSSSP memory experiments. |
-| `make 15_throughput_bbss` | MultiSSSP throughput experiments. |
-| `make 16_scalability_test` | Scalability experiments. |
+| `make 6_runtime_four_bbss` | MultiSSSP runtime experiments. |
+| `make 7_inst_rate_four_bbss` | MultiSSSP instruction-rate experiments. |
+| `make 8_memory_four_bbss` | MultiSSSP memory experiments. |
+| `make 9_scalability_test` | Scalability experiments. |
 
 Use `make -n <target>` to preview commands without running them.
