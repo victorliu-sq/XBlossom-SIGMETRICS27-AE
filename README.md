@@ -1,73 +1,20 @@
 # X-Blossom SIGMETRICS27 Artifact
 
-This repository contains the source code, build targets, dataset processing scripts,
-and experiment drivers for the SIGMETRICS27 X-Blossom artifact.
+This artifact contains the X-Blossom source code, local build targets, dataset
+processing scripts, and local experiment targets. It does not include dataset
+download scripts.
 
-The repository intentionally does not include dataset download scripts. The original
-graphs are public datasets and should be downloaded from their source websites. The
-conversion and preprocessing scripts used by the experiments are included.
+## Requirements
 
-## Hardware Requirements
+- Linux with `bash`, `git`, CMake 3.25+, GCC 13+, and Conda with Python 3.11.
+- CUDA 12.8+ and an NVIDIA GPU for GPU targets.
+- Linux `perf` and NVIDIA Nsight Compute (`ncu`) for profiling targets.
 
-- NVIDIA GPU with CUDA support.
-- Multi-core CPU with at least 32 hardware threads for the CPU experiments.
-- At least 24 GB of host memory and 24 GB of GPU memory for the full evaluation.
-- Enough local storage for the raw and converted graph datasets.
+## Dataset Setup
 
-CPU profiling scripts use `perf` events that were validated on Intel CPUs. Some
-events may need adjustment on other CPU vendors or microarchitectures.
-
-## Software Requirements
-
-Install these tools before building or running the artifact:
-
-- bash
-- git
-- CMake 3.25 or newer
-- GCC 13 or newer
-- CUDA 12.8 or newer
-- Conda with Python 3.11
-- Linux `perf`
-- NVIDIA Nsight Compute (`ncu`)
-
-The Python environment is created by the dependency scripts. The required Python
-packages are listed under `scripts/1-deps/xb/install/requirements.txt`.
-
-## Repository Layout
-
-- `apps/xb`: X-Blossom CPU and GPU implementations.
-- `apps/ligra`: Ligra-based CPU traversal baselines.
-- `apps/gunrock`: Gunrock-based GPU traversal baselines.
-- `scripts/1-deps`: dependency setup scripts.
-- `scripts/2-datasets`: dataset conversion and source-node generation scripts.
-- `scripts/3-build`: build scripts.
-- `scripts/4-expr`: local experiment and analysis scripts.
-- `make`: Makefile fragments for common workflows.
-
-## Build
-
-From the repository root:
-
-```bash
-make deps
-make build
-```
-
-`make build` builds the X-Blossom, Ligra, and Gunrock targets used by the
-experiment scripts.
-
-## Datasets
-
-Download raw graph datasets directly from public graph repositories such as:
-
-- SNAP: https://snap.stanford.edu/data/
-- Network Repository: https://networkrepository.com/
-- SuiteSparse Matrix Collection: https://sparse.tamu.edu/
-- KONECT: https://konect.cc/networks/
-- LAW WebGraph datasets: https://law.di.unimi.it/datasets.php
-
-The experiment scripts expect CSR text files under `data/xb` with the following
-layout:
+Download raw graph datasets from public sources such as SNAP, Network
+Repository, SuiteSparse, KONECT, or LAW WebGraph. Convert each graph to CSR text
+files and place them under `data/xb`:
 
 ```text
 data/xb/
@@ -93,35 +40,49 @@ data/xb/
   Youtube/youtube_colIndices.txt
 ```
 
-After placing the CSR files, run:
+Then generate the derived inputs used by Ligra, Gunrock, and source-node runs:
 
 ```bash
 make process-datasets
 ```
 
-This generates:
+## Build
 
-- Ligra adjacency inputs under `data/ligra`, `data/ligra_w`, and
-  `data/ligra_hyper_w`.
-- Gunrock Matrix Market inputs under `data/gunrock` and `data/gunrock_w`.
-- BFS/SSSP source-node lists under `data/src_nodes`.
+```bash
+make deps
+make build
+```
 
-## Experiments
+Use `make deps-cpu && make build-cpu` or `make deps-gpu && make build-gpu` for
+CPU-only or GPU-only setup.
 
-Run all configured local experiments:
+## Local Experiment Targets
+
+Run all local experiments:
 
 ```bash
 make all
 ```
 
-Individual experiment targets are documented in `make/README.md`. Most scripts
-write intermediate logs to `tmp/` and final tables/plots or CSV summaries to
-`results/`.
+Run one target at a time:
 
-## Notes
+```bash
+make 1_graph_metrics
+make 2_reuse
+make 3_load_balance
+make 4_xb_pro_inst
+make 5_runtime
+make 6_inst_rate
+make 7_memory
+make 8_runtime_four
+make 9_inst_rate_four
+make 10_memory_four
+make 11_throughput
+make 12_runtime_four_bbss
+make 13_inst_rate_four_bbss
+make 14_memory_four_bbss
+make 15_throughput_bbss
+make 16_scalability_test
+```
 
-- Dataset download scripts are deliberately omitted to avoid bundling private
-  storage links. Only processing scripts are included.
-- If a public dataset uses a different raw format, convert it to the CSR
-  `rowOffsets` and `colIndices` text files shown above before running
-  `make process-datasets`.
+Logs and generated outputs are written under `tmp/` and `results/`.

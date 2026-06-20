@@ -168,7 +168,6 @@ default_xb_pro_threads() {
   local xb_pro_threads
 
   # Read physical CPU topology directly instead of deriving it from logical CPUs.
-  # On aws-cpu: Core(s) per socket = 48, Socket(s) = 1, so physical_cores = 48.
   cores_per_socket="$(lscpu 2>/dev/null | awk -F: '/^Core\(s\) per socket:/ { gsub(/[[:space:]]/, "", $2); print $2; exit }')"
   sockets="$(lscpu 2>/dev/null | awk -F: '/^Socket\(s\):/ { gsub(/[[:space:]]/, "", $2); print $2; exit }')"
   cores_per_socket="${cores_per_socket:-1}"
@@ -176,7 +175,6 @@ default_xb_pro_threads() {
   physical_cores=$((cores_per_socket * sockets))
 
   # Policy: use physical cores by default.
-  # On aws-cpu this gives 48 XB-Pro worker threads.
   xb_pro_threads=$physical_cores
   if ((xb_pro_threads < 1)); then
     xb_pro_threads=1
