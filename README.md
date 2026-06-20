@@ -16,6 +16,10 @@ Download raw graph datasets from public sources such as SNAP, Network
 Repository, SuiteSparse, KONECT, or LAW WebGraph. Convert each graph to CSR text
 files and place them under `data/xb`:
 
+We do not provide preprocessed dataset archives in this double-blind submission
+because the available hosting metadata could reveal author identity; the
+processing scripts are included instead.
+
 ```text
 data/xb/
   Amazon/amazon_rowOffsets.txt
