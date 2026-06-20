@@ -79,7 +79,7 @@ require_file() {
   local label="$2"
   if [[ ! -f "$path" ]]; then
     echo "ERROR: ${label} not found: ${path}" >&2
-    echo "Run 'make datasets' before running this script." >&2
+    echo "Place the raw CSR datasets under data/xb, then run 'make process-datasets' before running this script." >&2
     exit 1
   fi
 }

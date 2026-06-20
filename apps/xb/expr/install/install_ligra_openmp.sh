@@ -30,7 +30,7 @@ echo
 if [ ! -d "$LIGRA_DIR" ]; then
   echo "🌱 Cloning Ligra repository into $LIGRA_DIR..."
   mkdir -p "$DEPS_DIR"
-  git clone https://github.com/victorliu-sq/ligra.git "$LIGRA_DIR"
+  git clone https://github.com/jshun/ligra.git "$LIGRA_DIR"
 else
   echo "✅ Ligra already exists in $LIGRA_DIR"
 fi

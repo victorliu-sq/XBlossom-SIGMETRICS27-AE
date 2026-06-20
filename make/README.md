@@ -21,7 +21,7 @@ local final plot/table generation step when the local workflow has one.
 | File | Purpose |
 | --- | --- |
 | `make/1-deps.mk` | Install local and remote dependencies. |
-| `make/2-datasets.mk` | Download local and remote datasets. |
+| `make/2-datasets.mk` | Explain manual dataset download and run local/remote dataset processing. |
 | `make/3-build.mk` | Build local and remote binaries. |
 | `make/4-expr-local.mk` | Local experiment runs. |
 | `make/4-expr-remote.mk` | Unified remote experiment orchestration and result fetch. |
@@ -35,8 +35,9 @@ local final plot/table generation step when the local workflow has one.
 | `make deps` | Install all dependencies. |
 | `make deps-cpu` | Install CPU dependencies. |
 | `make deps-gpu` | Install GPU dependencies. |
-| `make datasets` | Download all datasets and generate source-node lists. |
-| `make datasets-ligra-w` | Download only Ligra weighted datasets. |
+| `make datasets` | Print dataset acquisition instructions. |
+| `make process-datasets` | Convert CSR datasets and generate source-node lists. |
+| `make process-datasets-ligra-w` | Convert only Ligra weighted datasets. |
 | `make build` | Install dependencies and build all local targets. |
 | `make build-cpu` | Install CPU dependencies and build CPU targets. |
 | `make build-gpu` | Install GPU dependencies and build GPU targets. |
@@ -46,7 +47,7 @@ local final plot/table generation step when the local workflow has one.
 
 ## Local Experiment Targets
 
-Each local experiment target depends on `build`, `datasets`, and `prepare_logs`.
+Each local experiment target depends on `build`, `process-datasets`, and `prepare_logs`.
 
 | Target | Description |
 | --- | --- |
@@ -92,7 +93,7 @@ Each local experiment target depends on `build`, `datasets`, and `prepare_logs`.
 Remote host variables can be overridden, for example:
 
 ```bash
-make remote-5_runtime REMOTE_CPU_HOST=my-cpu REMOTE_GPU_HOST=my-gpu REMOTE_REPO_DIR=/path/to/GACGE
+make remote-5_runtime REMOTE_CPU_HOST=my-cpu REMOTE_GPU_HOST=my-gpu REMOTE_REPO_DIR=/path/to/XBlossom-SIGMETRICS27-AE
 ```
 
 ## Remote Setup Targets
@@ -106,12 +107,12 @@ make remote-5_runtime REMOTE_CPU_HOST=my-cpu REMOTE_GPU_HOST=my-gpu REMOTE_REPO_
 | `make remote-build` | Build all configured remote targets on `aws-gpu`. |
 | `make remote-build-cpu` | Build CPU targets on `aws-cpu`. |
 | `make remote-build-gpu` | Build GPU targets on `aws-gpu`. |
-| `make remote-datasets-cpu` | Download datasets on `aws-cpu`. |
-| `make remote-datasets-gpu` | Download datasets on `aws-gpu`. |
-| `make remote-datasets-ligra-w-cpu` | Download Ligra weighted datasets on `aws-cpu`. |
+| `make remote-datasets-cpu` | Process already staged datasets on `aws-cpu`. |
+| `make remote-datasets-gpu` | Process already staged datasets on `aws-gpu`. |
+| `make remote-datasets-ligra-w-cpu` | Process Ligra weighted datasets on `aws-cpu`. |
 
 ## Notes
 
 Use `make -n <target>` to preview commands without running them. This is useful
-for remote targets because they can install dependencies, build code, download
+for remote targets because they can install dependencies, build code, process
 datasets, and start long experiment runs.

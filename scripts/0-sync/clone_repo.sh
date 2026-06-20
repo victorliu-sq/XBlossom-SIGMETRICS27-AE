@@ -2,8 +2,8 @@
 set -euo pipefail
 
 REMOTE_HOST="${REMOTE_HOST:?Set REMOTE_HOST to an SSH config host, such as aws-cpu or aws-gpu}"
-REMOTE_REPO_DIR="${REMOTE_REPO_DIR:-/home/ubuntu/GACGE}"
-REPO_URL="${REPO_URL:-git@github.com:victorliu-sq/Graph-Algorithm-CPU-GPU-Evaluation.git}"
+REMOTE_REPO_DIR="${REMOTE_REPO_DIR:-/home/ubuntu/XBlossom-SIGMETRICS27-AE}"
+REPO_URL="${REPO_URL:?Set REPO_URL to the artifact repository clone URL}"
 
 ssh "${REMOTE_HOST}" \
   "REMOTE_REPO_DIR='${REMOTE_REPO_DIR}' REPO_URL='${REPO_URL}' bash -s" <<'REMOTE_SCRIPT'

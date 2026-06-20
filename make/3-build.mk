@@ -10,10 +10,10 @@ build-gpu: deps-gpu
 	./scripts/3-build/build_gpu
 
 remote-build:
-	ssh aws-gpu "cd /home/ubuntu/GACGE && ./scripts/3-build/build_all"
+	ssh aws-gpu "cd $(REMOTE_REPO_DIR) && ./scripts/3-build/build_all"
 
 remote-build-cpu:
-	ssh aws-cpu "cd /home/ubuntu/GACGE && ./scripts/3-build/build_cpu"
+	ssh aws-cpu "cd $(REMOTE_REPO_DIR) && ./scripts/3-build/build_cpu"
 
 remote-build-gpu:
-	ssh aws-gpu "cd /home/ubuntu/GACGE && ./scripts/3-build/build_gpu"
+	ssh aws-gpu "cd $(REMOTE_REPO_DIR) && ./scripts/3-build/build_gpu"

@@ -7,9 +7,7 @@ if [[ ! -f "${LBVH_STAMP}" ]]; then
   echo "[lbvh] Installing lbvh to ${DEPS_DIR} ..."
   pushd "${DEPS_DIR}" >/dev/null
 
-  # download tmp project
-  #  git clone "https://github.com/ToruNiina/lbvh.git"
-  git clone "https://github.com/victorliu-sq/lbvh.git"
+  git clone "https://github.com/ToruNiina/lbvh.git"
   pushd lbvh >/dev/null
 
   touch "${LBVH_STAMP}"

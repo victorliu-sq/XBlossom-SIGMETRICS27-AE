@@ -1,4 +1,4 @@
-REMOTE_REPO_DIR ?= /home/ubuntu/GACGE
+REMOTE_REPO_DIR ?= /home/ubuntu/XBlossom-SIGMETRICS27-AE
 REMOTE_CPU_HOST ?= aws-cpu
 REMOTE_GPU_HOST ?= aws-gpu
 

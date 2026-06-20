@@ -18,7 +18,7 @@ fi
 # --- Step 1: Clone Gunrock if not exists ---
 if [ ! -d "$GUNROCK_DIR" ]; then
   echo "🌱 Cloning Gunrock repository into $GUNROCK_DIR..."
-  git clone https://github.com/victorliu-sq/gunrock.git "$GUNROCK_DIR"
+  git clone https://github.com/gunrock/gunrock.git "$GUNROCK_DIR"
 else
   echo "✅ Gunrock already exists in $GUNROCK_DIR"
 fi
@@ -54,4 +54,3 @@ popd >/dev/null
 
 # project
 popd >/dev/null
-

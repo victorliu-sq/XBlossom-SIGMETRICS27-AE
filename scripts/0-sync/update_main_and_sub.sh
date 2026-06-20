@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
 REMOTE_HOST="${REMOTE_HOST:-aws-gpu}"
-REMOTE_REPO_DIR="${REMOTE_REPO_DIR:-/home/ubuntu/GACGE}"
+REMOTE_REPO_DIR="${REMOTE_REPO_DIR:-/home/ubuntu/XBlossom-SIGMETRICS27-AE}"
 REMOTE_BRANCH="${REMOTE_BRANCH:-$(git -C "${PROJECT_DIR}" rev-parse --abbrev-ref HEAD)}"
 
 if [[ "${REMOTE_BRANCH}" == "HEAD" ]]; then

@@ -8,7 +8,7 @@ set(FETCHCONTENT_BASE_DIR "${FC_BUILD_BASE}")
 
 FetchContent_Declare(
     moderngpu
-    GIT_REPOSITORY https://github.com/victorliu-sq/moderngpu
+    GIT_REPOSITORY https://github.com/moderngpu/moderngpu
     GIT_TAG        master
     SOURCE_DIR     "${FC_SOURCE_BASE}/moderngpu-src"
     BINARY_DIR     "${FC_BUILD_BASE}/moderngpu-build"
