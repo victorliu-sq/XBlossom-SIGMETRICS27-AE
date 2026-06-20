@@ -1,0 +1,221 @@
+%%
+%% This is file `sample-manuscript.tex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% samples.dtx  (with options: `all,proceedings,bibtex,manuscript')
+%% 
+%% IMPORTANT NOTICE:
+%% 
+%% For the copyright see the source file.
+%% 
+%% Any modified versions of this file must be renamed
+%% with new filenames distinct from sample-manuscript.tex.
+%% 
+%% For distribution of the original source see the terms
+%% for copying and modification in the file samples.dtx.
+%% 
+%% This generated file may be distributed as long as the
+%% original source files, as listed above, are part of the
+%% same distribution. (The sources need not necessarily be
+%% in the same archive or directory.)
+%%
+%%
+%% Commands for TeXCount
+%TC:macro \cite [option:text,text]
+%TC:macro \citep [option:text,text]
+%TC:macro \citet [option:text,text]
+%TC:envir table 0 1
+%TC:envir table* 0 1
+%TC:envir tabular [ignore] word
+%TC:envir displaymath 0 word
+%TC:envir math 0 word
+%TC:envir comment 0 0
+%%
+%% The first command in your LaTeX source must be the \documentclass
+%% command.
+%%
+%% For submission and review of your manuscript please change the
+%% command to \documentclass[manuscript, screen, review]{acmart}.
+%%
+%% When submitting camera ready or to TAPS, please change the command
+%% to \documentclass[sigconf]{acmart} or whichever template is required
+%% for your publication.
+%%
+%%
+\documentclass[acmsmall, screen, review, anonymous]{acmart}
+
+%%
+%% end of the preamble, start of the body of the document source.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% only use one of these
+% \usepackage{algorithmic}
+% \usepackage{algpseudocode}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+
+\theoremstyle{plain} % plain = bold heading, italic body
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+
+\usepackage{float}
+\usepackage[font=footnotesize]{caption}
+
+% ===== PREAMBLE STARTS HERE =====
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\setlength{\textfloatsep}{6pt}
+\setlength{\floatsep}{6pt}
+\setlength{\intextsep}{6pt}
+
+% ===== PREAMBLE ENDS HERE =====
+
+\usepackage{adjustbox}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{threeparttable}
+
+\usepackage{balance}
+
+\usepackage{listings}
+\usepackage{tikz}
+
+\usepackage{paralist}
+\usepackage{pifont}
+\usepackage{enumitem}
+
+\usepackage{comment}
+
+% \usepackage[hyphens]{url}
+\usepackage{caption}
+% Options: small, normalsize, large, Large, LARGE, huge
+\captionsetup{font=normalsize}      
+
+\makeatletter
+\renewcommand\section{\def\@toclevel{1}%
+  \@startsection{section}{1}{\z@}%
+  {-.45\baselineskip \@plus -1\p@ \@minus -.1\p@}%
+  {.18\baselineskip}%
+  {\ACM@NRadjust\@secfont}}
+\renewcommand\subsection{\def\@toclevel{2}%
+  \@startsection{subsection}{2}{\z@}%
+  {-.40\baselineskip \@plus -1\p@ \@minus -.1\p@}%
+  {.15\baselineskip}%
+  {\ACM@NRadjust\@subsecfont}}
+\renewcommand\subsubsection{\def\@toclevel{3}%
+  \@startsection{subsubsection}{3}{\z@}%
+  {-.30\baselineskip \@plus -1\p@ \@minus -.1\p@}%
+  {-3.5\p@}%
+  {\ACM@NRadjust{\@subsubsecfont\@adddotafter}}}
+\let\ACM@origsection\section
+\let\ACM@origsubsection\subsection
+\let\ACM@origsubsubsection\subsubsection
+\makeatother
+
+\usepackage{tabularx} % add in preamble
+
+\usepackage{placeins}
+
+% \usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
+
+\newcommand{\myitem}{%
+    \refstepcounter{enumi}%
+    \item[\raisebox{0.2ex}{\tikz[baseline=(char.base)]{
+        \node[shape=circle, fill=black, inner sep=1.2pt] (char) {\textbf{\textcolor{white}{\scriptsize\theenumi}}};}}]%
+}
+
+\lstset{language=C++,
+        basicstyle=\footnotesize\ttfamily,
+        numbers=left,
+        numberstyle=\tiny,
+        stepnumber=1,
+        numbersep=5pt,
+        backgroundcolor=\color{white},
+        showspaces=false,
+        showstringspaces=false,
+        showtabs=false,
+        frame=single,
+        rulecolor=\color{black},
+        tabsize=2,
+        captionpos=b,
+        breaklines=true,
+        breakatwhitespace=false,
+        title=\lstname,
+        keywordstyle=\color{blue},
+        commentstyle=\color{green},
+        stringstyle=\color{red},
+        escapeinside={\%*}{*)},
+        morekeywords={*,...}
+}
+
+\begin{document}
+
+%%
+%% The "title" command has an optional parameter,
+%% allowing the author to define a "short title" to be used in page headers.
+ \title{Performance Insights and Implications of Traversal-based Graph Analytics on both Multi-core CPUs and GPUs}
+%\title{XG-Blossom and Performance Insights of Traversal-based Graph Analytics on Multi-core CPUs and GPUs}
+
+\input{textfiles/0_copyright}
+
+\input{textfiles/0_authors}
+
+\input{textfiles/0_abstract}
+
+\input{textfiles/0_acmconcepts}
+
+%%
+%% Keywords. The author(s) should pick words that accurately describe
+%% the work being presented. Separate the keywords with commas.
+\keywords{Blossom Algorithm, Massively Parallel, Multi-core CPU, GPU, Performance Analysis}
+
+% \received{20 February 2007}
+% \received[revised]{12 March 2009}
+% \received[accepted]{5 June 2009}
+
+%%
+%% This command processes the author and affiliation and title
+%% information and builds the first part of the formatted document.
+\maketitle
+
+\input{textfiles/1_introduction}
+
+\input{textfiles/2_background}
+
+\input{textfiles/3_xblossom_acceleration}
+
+\input{textfiles/4_evaluation}
+
+\input{textfiles/5_profiling}
+
+\input{textfiles/6_relatedwork}
+
+\input{textfiles/7_conclusion}
+
+\newpage
+%%
+%% The next two lines define the bibliography style to be used, and
+%% the bibliography file.
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{sample-base}
+
+%%
+%% If your work has an appendix, this is the place to put it.
+\clearpage
+\appendix
+
+\input{textfiles/8_major_revision}
+\input{textfiles/9_replies_to_reviewers}
+\input{textfiles/10_ci_tables}
+
+\end{document}
+\endinput
+%%
+%% End of file `sample-manuscript.tex'.

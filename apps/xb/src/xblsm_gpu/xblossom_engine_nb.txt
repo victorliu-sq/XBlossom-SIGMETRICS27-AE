@@ -1,0 +1,396 @@
+#include "xbsm_gpu/xblossom_engine_nb.h"
+#include "glog/logging.h"
+
+namespace zblossom {
+  XBlossomEngineNB::XBlossomEngineNB(const host_graph_t &graph, size_t num_threads)
+    : SecondaryMaximumMatchingEngine(graph.nnodes),
+      num_threads_(num_threads),
+      graph_(graph),
+      nnodes_(graph.nnodes),
+      path_table_(nnodes_),
+      is_even_(nnodes_),
+      tree_roots_(nnodes_),
+      atomic_locks_tree_(nnodes_),
+      atomic_locks_match_(nnodes_),
+      atomic_locks_odd_nodes_(nnodes_),
+      blossom_to_base_(nnodes_) {
+    assert(num_threads_ <= graph_.nnodes);
+    threads_.reserve(num_threads_);
+  }
+
+  void XBlossomEngineNB::FlipAugmentingPath(const Vector<AugPath> &aug_path_vec, Matching &matching) {
+    // Flip augmenting path in serial
+    for (const auto &aug_path: aug_path_vec) {
+      size_t len = aug_path.size();
+      for (int i = 0; i < len; i += 2) {
+        int node1 = aug_path[i];
+        int node2 = aug_path[i + 1];
+        matching[node1] = node2;
+        matching[node2] = node1;
+      }}
+  }
+
+  void XBlossomEngineNB::FindAugmentingPath(Vector<AugPath> &aug_path_vec, const Matching &matching) {
+    this->InitAlternatingForest(matching);
+
+    // Continue while even nodes remain and no augmenting path has been found
+    while (this->HasEvenNodes()
+           && !this->FindAugmentingPathFromAlternatingForest(aug_path_vec)) {
+      this->ExpandAlternatingForest(matching);
+
+      this->TransformOddNodesInBlossom();
+    }
+  }
+
+  void XBlossomEngineNB::InitAlternatingForest(const Matching &matching) {
+    // Reset Path Table
+    // for (auto &path: this->path_table_) {
+    //   path.clear();
+    // }
+    path_table_.Reset();
+
+    // Find all exposed nodes
+    even_nodes_.clear();
+    for (index_t i = 0; i < matching.size(); i++) {
+      if (IsUnmatched(i, matching)) {
+        this->even_nodes_.push_back(i);
+      }
+    }
+
+    // for each exposed node, set it to be even, and the root is itself
+    std::fill(tree_roots_.begin(), tree_roots_.end(), nnodes_);
+    std::fill(is_even_.begin(), is_even_.end(), false);
+    for (auto &even_node: even_nodes_) {
+      is_even_[even_node] = true;
+      tree_roots_[even_node] = even_node;
+    }
+
+    new_even_nodes_from_expansion_.clear();
+    new_even_nodes_from_blossom_.clear();
+
+    std::fill(atomic_locks_tree_.begin(), atomic_locks_tree_.end(), false);
+    std::fill(atomic_locks_match_.begin(), atomic_locks_match_.end(), false);
+    std::fill(atomic_locks_odd_nodes_.begin(), atomic_locks_odd_nodes_.end(), false);
+
+    std::fill(blossom_to_base_.begin(), blossom_to_base_.end(), nnodes_);
+  }
+
+  bool XBlossomEngineNB::FindAugmentingPathFromAlternatingForest(Vector<AugPath> &aug_path_vec) {
+    auto start_time = getNanoSecond();
+
+    threads_.clear();
+    std::mutex path_mutex;
+
+    size_t total_tasks = even_nodes_.size();
+    if (total_tasks == 0) {
+      return false;
+    }
+
+    // ----------------- For Profiling ------------------------
+    PROFILE_STATEMENT(std::atomic<size_t> total_vw{0});
+    PROFILE_STATEMENT(std::atomic<size_t> effective_vw{0});
+    // --------------------------------------------------------
+
+    size_t num_tasks_per_thread = CEIL_DIV(total_tasks, num_threads_);
+
+    for (index_t thread_id = 0; thread_id < num_threads_; ++thread_id) {
+      index_t begin = thread_id * num_tasks_per_thread;
+      index_t end = std::min(begin + num_tasks_per_thread, even_nodes_.size());
+      if (begin > end) {
+        break;
+      }
+      threads_.emplace_back([&](index_t even_nodes_begin, index_t even_nodes_end) {
+        // Locally store the final augmenting paths
+        Vector<index_t> local_path;
+
+        // iterate each even node
+        // Vector<index_t> path_v;
+        // Vector<index_t> path_w;
+        for (index_t v_idx = even_nodes_begin; v_idx < even_nodes_end; v_idx++) {
+          index_t v = even_nodes_[v_idx];
+          index_t start_offset = graph_.row_offsets[v];
+          index_t end_offset = graph_.row_offsets[v + 1];
+
+          // ----------------- For Profiling ------------------------
+          // record the number of neighbors of even node v_idx
+          PROFILE_STATEMENT(total_vw.fetch_add(end_offset - start_offset));
+          // --------------------------------------------------------
+          for (index_t w_offset = start_offset; w_offset < end_offset; w_offset++) {
+            index_t w = graph_.col_indices[w_offset];
+            index_t root_v = tree_roots_[v];
+            index_t root_w = tree_roots_[w];
+            if (IsInForest(v) && IsInForest(w) && is_even_[w] && root_v != root_w) {
+              bool expected = false;
+              if (!atomic_locks_tree_[root_v].compare_exchange_strong(expected, true)) {
+                break;
+              }
+              if (!atomic_locks_tree_[root_w].compare_exchange_strong(expected, true)) {
+                // reset atomic lock on root v
+                atomic_locks_tree_[root_v].store(false);
+                continue;
+              }
+              // ----------------- For Profiling ------------------------
+              PROFILE_STATEMENT(effective_vw.fetch_add(1));
+              // --------------------------------------------------------
+              // two alternating trees have been locked, and selected
+              // FindPath(v, path_v);
+              // FindPath(w, path_w);
+              // this->path_table_.FindPath(v, path_v);
+              // this->path_table_.FindPath(w, path_w);
+              //
+              // // insert in the reverse order
+              // local_path.insert(local_path.end(), path_v.rbegin(), path_v.rend());
+              // // insert in the regular order
+              // local_path.insert(local_path.end(), path_w.begin(), path_w.end());
+              this->path_table_.FindAugmentingPath(v, w, local_path);
+              break;
+            }
+          }
+        }
+        // lock scope
+        if (!local_path.empty()) {
+          LockGuard lock(path_mutex);
+          aug_path_vec.push_back(local_path);
+        }
+      }, begin, end);
+    }
+    this->JoinAllThreads();
+
+    // ----------------- For Profiling ------------------------
+    PROFILE_STATEMENT(augmenting_path_stats_.push_back({total_vw.load(), effective_vw.load()});
+    )
+    // --------------------------------------------------------
+
+    auto end_time = getNanoSecond();
+    this->time_augmenting_path += end_time - start_time;
+    return aug_path_vec.size() > 0;
+  }
+
+  void XBlossomEngineNB::ExpandAlternatingForest(const Matching &matching) {
+    auto start_time = getNanoSecond();
+
+    threads_.clear();
+    std::mutex expansion_mutex;
+    new_even_nodes_from_expansion_.clear();
+
+    size_t total_tasks = even_nodes_.size();
+    if (total_tasks == 0) {
+      return;
+    }
+
+    // ----------------- For Profiling ------------------------
+    PROFILE_STATEMENT(std::atomic<size_t> total_vw{0});
+    PROFILE_STATEMENT(std::atomic<size_t> effective_vw{0});
+    // --------------------------------------------------------
+
+    size_t num_tasks_per_thread = CEIL_DIV(total_tasks, num_threads_);
+
+    for (index_t thread_id = 0; thread_id < num_threads_; ++thread_id) {
+      index_t start = thread_id * num_tasks_per_thread;
+      index_t end = std::min(start + num_tasks_per_thread, total_tasks);
+
+      if (start > end) {
+        break;
+      }
+      threads_.emplace_back([&, start, end]() {
+        // local_new_even_nodes_from_expansion
+        Vector<index_t> local_new_even_nodes;
+
+        for (index_t v_idx = start; v_idx < end; v_idx++) {
+          index_t v = even_nodes_[v_idx];
+          index_t start_offset = graph_.row_offsets[v];
+          index_t end_offset = graph_.row_offsets[v + 1];
+
+          // ----------------- For Profiling ------------------------
+          // record the number of neighbors of even node v_idx
+          PROFILE_STATEMENT(total_vw.fetch_add(end_offset - start_offset));
+          // --------------------------------------------------------
+
+          for (index_t w_offset = start_offset; w_offset < end_offset; w_offset++) {
+            index_t w = graph_.col_indices[w_offset];
+
+            // now we have v and w
+            index_t root_v = tree_roots_[v];
+            index_t x = matching[w];
+
+            if (!IsInForest(w)) {
+              bool expected = false;
+              index_t match_idx = std::min(w, x);
+
+              if (atomic_locks_match_[match_idx].compare_exchange_strong(expected, true)) {
+                // ----------------- For Profiling ------------------------
+                PROFILE_STATEMENT(effective_vw.fetch_add(1));
+                // --------------------------------------------------------
+
+                // path_table_[x].push_back(w);
+                // path_table_[x].push_back(v);
+                this->path_table_.ExpandTwoNodes(v, w, x);
+
+                is_even_[w] = false;
+                is_even_[x] = true;
+
+                tree_roots_[w] = root_v;
+                tree_roots_[x] = root_v;
+
+                local_new_even_nodes.push_back(x);
+              }
+            }
+          }
+        }
+
+        if (local_new_even_nodes.size() > 0) {
+          LockGuard lock(expansion_mutex);
+          new_even_nodes_from_expansion_.insert(new_even_nodes_from_expansion_.end(),
+                                                local_new_even_nodes.begin(),
+                                                local_new_even_nodes.end());
+        }
+      });
+    }
+
+    this->JoinAllThreads();
+
+    // ----------------- For Profiling ------------------------
+    PROFILE_STATEMENT(expand_stats_.push_back({total_vw.load(), effective_vw.load()})
+    );
+    // --------------------------------------------------------
+
+    this->UpdateEvenNodes();
+
+    auto end_time = getNanoSecond();
+    this->time_expand += end_time - start_time;
+  }
+
+  void XBlossomEngineNB::TransformOddNodesInBlossom() {
+    auto start_time = getNanoSecond(); // Start Profiling
+
+    threads_.clear();
+    std::mutex blossom_mutex;
+    new_even_nodes_from_blossom_.clear();
+
+    size_t total_tasks = even_nodes_.size();
+    if (total_tasks == 0) {
+      return;
+    }
+
+    // ----------------- For Profiling ------------------------
+    PROFILE_STATEMENT(std::atomic<size_t> total_vw{0});
+    PROFILE_STATEMENT(std::atomic<size_t> effective_vw{0});
+    // --------------------------------------------------------
+    // --------------------------------------------------------
+    size_t num_tasks_per_thread = CEIL_DIV(total_tasks, num_threads_);
+
+    for (index_t thread_id = 0; thread_id < num_threads_; ++thread_id) {
+      index_t start = thread_id * num_tasks_per_thread;
+      index_t end = std::min(start + num_tasks_per_thread, even_nodes_.size());
+
+      // if (start > end) {
+      //   break;
+      // }
+      threads_.emplace_back([&, start, end]() {
+        // local_new_even_nodes_from_blossom
+        Vector<index_t> local_new_even_nodes;
+
+        // Blossom Optimziation: Preallocate paths and blossom
+        Vector<index_t> path_v, path_w, blossom;
+
+        for (index_t v_idx = start; v_idx < end; v_idx++) {
+          index_t v = even_nodes_[v_idx];
+          index_t start_offset = graph_.row_offsets[v];
+          index_t end_offset = graph_.row_offsets[v + 1];
+
+          // ----------------- For Profiling ------------------------
+          // record the number of neighbors of even node v_idx
+          PROFILE_STATEMENT(total_vw.fetch_add(end_offset - start_offset));
+          // --------------------------------------------------------
+
+          for (index_t w_offset = start_offset; w_offset < end_offset; w_offset++) {
+            index_t w = graph_.col_indices[w_offset];
+
+            // now we have v and w
+            index_t root_v = tree_roots_[v];
+            index_t root_w = tree_roots_[w];
+
+            // Blossom handling logics
+            if (is_even_[w] && root_v == root_w &&
+                (blossom_to_base_[v] == nnodes_ || blossom_to_base_[w] != blossom_to_base_[v])) {
+              // ----------------- For Profiling ------------------------
+              PROFILE_STATEMENT(effective_vw.fetch_add(1));
+              // --------------------------------------------------------
+
+              // FindPath(v, path_v);
+              // FindPath(w, path_w);
+              // <c, b, a, d, e, c>
+              // FindBlossom(path_v, path_w, blossom);
+              path_table_.FindBlossom(v, w, blossom);
+
+              blossom_to_base_[blossom[0]] = blossom[0];
+
+              // iterate original odd nodes anti-clockwise
+              for (int k = blossom.size() - 3; k > 0; k -= 2) {
+                index_t cur = blossom[k];
+
+                if (blossom_to_base_[cur] == nnodes_) {
+                  blossom_to_base_[cur] = blossom[0];
+                }
+
+                if (!is_even_[cur] && this->path_table_.IsPathEmpty(cur)) {
+                  bool expected = false;
+                  if (atomic_locks_odd_nodes_[cur].compare_exchange_strong(expected, true)) {
+                    // for (index_t n = k + 1; n < blossom.size(); n++) {
+                    //   path_table_[cur].push_back(blossom[n]);
+                    // }
+                    this->path_table_.AddNodesFromBlossomToRight(cur, blossom, k + 1);
+
+                    local_new_even_nodes.push_back(cur);
+                    is_even_[cur] = true;
+                  }
+                }
+              }
+
+              // iterate original odd nodes clockwise
+              for (index_t k = 2; k < blossom.size(); k += 2) {
+                index_t cur = blossom[k];
+                if (blossom_to_base_[cur] == nnodes_) {
+                  blossom_to_base_[cur] = blossom[0];
+                }
+
+                if (!is_even_[cur] && this->path_table_.IsPathEmpty(cur)) {
+                  bool expected = false;
+                  if (atomic_locks_odd_nodes_[cur].compare_exchange_strong(expected, true)) {
+                    // for (int n = k - 1; n >= 0; n--) {
+                    //   path_table_[cur].push_back(blossom[n]);
+                    // }
+                    path_table_.AddNodesFromBlossomToLeft(cur, blossom, k - 1);
+
+
+                    local_new_even_nodes.push_back(cur);
+                    is_even_[cur] = true;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        if (!local_new_even_nodes.empty()) {
+          LockGuard lock(blossom_mutex);
+          new_even_nodes_from_blossom_.insert(
+            new_even_nodes_from_blossom_.end(),
+            local_new_even_nodes.begin(),
+            local_new_even_nodes.end());
+        }
+      });
+    }
+
+    this->JoinAllThreads();
+
+    // ----------------- For Profiling ------------------------
+    PROFILE_STATEMENT(blossom_stats_.push_back({total_vw.load(), effective_vw.load()}));
+    // --------------------------------------------------------
+
+    this->UpdateEvenNodes();
+
+    auto end_time = getNanoSecond(); // Stop Profiling
+    this->time_blossom += end_time - start_time;
+  }
+}

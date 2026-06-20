@@ -1,0 +1,36 @@
+\begin{table}[t]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.1}
+\setlength{\tabcolsep}{2pt}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llll}
+\toprule
+Platform & Measure & Description & Profiling Counters and Derivation \\
+\midrule
+CPU & \emph{instruction execution rate} &
+Instr./s &
+\mcode{instructions} / $t_{\text{exec}}$ \\
+
+CPU & \emph{LLC miss frequency} &
+L3 misses/s &
+\mcode{mem_load_retired.l3_miss} / $t_{\text{exec}}$ \\
+
+CPU & \emph{LLC miss rate} &
+L3 misses/accesses &
+\mcode{mem_load_retired.l3_miss} / (\mcode{mem_load_retired.l3_hit} + \mcode{mem_load_retired.l3_miss}) \\
+\midrule
+GPU & \emph{instruction execution rate} &
+Instr./s &
+\mcode{sm__sass_thread_inst_executed.sum} / $t_{\text{exec}}$ \\
+GPU & \emph{effective memory bandwidth} &
+DRAM read bytes/s &
+\mcode{dram__bytes_op_read.sum} / $t_{\text{exec}}$ \\
+\bottomrule
+\end{tabular}%
+}
+\captionsetup{skip=4pt}
+\caption{Five Derived Performance Measures.}
+\label{tab:derived-measures}
+\vspace{-4pt}
+\end{table}

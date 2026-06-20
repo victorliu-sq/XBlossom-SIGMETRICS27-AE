@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+BUILD_DIR="${REPO_DIR}/build"
+
+TARGETS=(
+# XB++ GPU runners
+  run_xb_pp_by_dataset
+  run_xb_pp_nr_by_dataset
+  run_xb_pp_peredge_by_dataset
+  run_xb_pp_pernode_by_dataset
+# Gunrock GPU apps
+  bfs
+  bc
+  sssp
+  multi_sssp
+  bfs_throughput
+  bc_throughput
+  sssp_throughput
+  multi_sssp_throughput
+)
+
+echo "[BUILD-GPU] REPO_DIR is ${REPO_DIR}"
+echo "[BUILD-GPU] Configure GPU benchmark components: XB++, Gunrock BFS/BC, and Gunrock SSSP"
+
+cmake -S "${REPO_DIR}" -B "${BUILD_DIR}" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DUSE_CPU=OFF \
+  -DUSE_GPU=ON \
+  -DBUILD_APP_LIGRA=OFF \
+  -DBUILD_APP_GUNROCK=ON
+
+echo "[BUILD-GPU] Build GPU benchmark targets"
+cmake --build "${BUILD_DIR}" --target "${TARGETS[@]}" --parallel
+
+echo "[BUILD-GPU] Build Complete"

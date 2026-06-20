@@ -1,0 +1,46 @@
+\begin{table*}[h]
+ \scriptsize
+ % \small
+ \centering
+ \setlength{\tabcolsep}{3pt}
+ \renewcommand{\arraystretch}{1.0}
+ \resizebox{\textwidth}{!}{%
+ \begin{tabular}{l|cccc|cccc}
+ \toprule
+  & \multicolumn{4}{c|}{\textbf{CPU}}
+  & \multicolumn{4}{c}{\textbf{GPU}} \\
+ \cmidrule(lr){2-5} \cmidrule(lr){6-9}
+ Dataset &
+ XB &
+ XB-Pro &
+ Speedup &
+ ReuseRatio (\%) &
+ XB-GPU &
+ XB++ &
+ Speedup &
+ ReuseRatio (\%) \\
+ \midrule
+ Amazon & 1.49 {\tiny $\pm$ 0.0432} & 0.458 {\tiny $\pm$ 0.0105} & 3.26$\times$ & 42.4 {\tiny $\pm$ 0.3} & 0.444 {\tiny $\pm$ 0.0142} & 0.0781 {\tiny $\pm$ 0.0041} & 5.68$\times$ & 39.6 {\tiny $\pm$ 0.2} \\
+ Patent & 8.23 {\tiny $\pm$ 0.366} & 5.05 {\tiny $\pm$ 0.184} & 1.63$\times$ & 32.1 {\tiny $\pm$ 0.1} & 0.567 {\tiny $\pm$ 0.0145} & 0.122 {\tiny $\pm$ 0.0045} & 4.64$\times$ & 31.9 {\tiny $\pm$ 0.08} \\
+ LiveJournal & 16.8 {\tiny $\pm$ 0.554} & 8.08 {\tiny $\pm$ 0.320} & 2.08$\times$ & 31.0 {\tiny $\pm$ 0.1} & 0.916 {\tiny $\pm$ 0.0372} & 0.237 {\tiny $\pm$ 0.0031} & 3.86$\times$ & 27.3 {\tiny $\pm$ 0.1} \\
+ StackOverflow & 1.57 {\tiny $\pm$ 0.0792} & 1.22 {\tiny $\pm$ 0.0392} & 1.28$\times$ & 20.2 {\tiny $\pm$ 0.6} & 0.0460 {\tiny $\pm$ 0.0018} & 0.0284 {\tiny $\pm$ 0.0009} & 1.62$\times$ & 19.3 {\tiny $\pm$ 0.3} \\
+ GPlus & 1.54 {\tiny $\pm$ 0.0461} & 1.21 {\tiny $\pm$ 0.0763} & 1.27$\times$ & 18.4 {\tiny $\pm$ 0.06} & 0.389 {\tiny $\pm$ 0.0086} & 0.177 {\tiny $\pm$ 0.0034} & 2.20$\times$ & 18.8 {\tiny $\pm$ 0.06} \\
+ Hyperlink & 4.69 {\tiny $\pm$ 0.148} & 3.42 {\tiny $\pm$ 0.124} & 1.37$\times$ & 18.3 {\tiny $\pm$ 0.06} & 0.548 {\tiny $\pm$ 0.0099} & 0.171 {\tiny $\pm$ 0.0024} & 3.21$\times$ & 17.8 {\tiny $\pm$ 0.04} \\
+ Youtube & 0.442 {\tiny $\pm$ 0.0277} & 0.345 {\tiny $\pm$ 0.0167} & 1.28$\times$ & 17.3 {\tiny $\pm$ 0.5} & 0.0276 {\tiny $\pm$ 0.0010} & 0.0161 {\tiny $\pm$ 0.0005} & 1.71$\times$ & 16.4 {\tiny $\pm$ 0.3} \\
+ HiggsNets & 0.902 {\tiny $\pm$ 0.0203} & 0.572 {\tiny $\pm$ 0.0154} & 1.58$\times$ & 14.3 {\tiny $\pm$ 0.06} & 0.239 {\tiny $\pm$ 0.0075} & 0.0755 {\tiny $\pm$ 0.0015} & 3.17$\times$ & 14.3 {\tiny $\pm$ 0.09} \\
+ Twitch & 0.503 {\tiny $\pm$ 0.0155} & 0.403 {\tiny $\pm$ 0.0380} & 1.25$\times$ & 6.2 {\tiny $\pm$ 0.04} & 0.209 {\tiny $\pm$ 0.0052} & 0.0909 {\tiny $\pm$ 0.0018} & 2.30$\times$ & 6.3 {\tiny $\pm$ 0.03} \\
+ Wikipedia & 0.557 {\tiny $\pm$ 0.0375} & 0.462 {\tiny $\pm$ 0.0285} & 1.20$\times$ & 1.6 {\tiny $\pm$ 0.03} & 0.0201 {\tiny $\pm$ 0.0014} & 0.0163 {\tiny $\pm$ 0.0009} & 1.24$\times$ & 1.5 {\tiny $\pm$ 0.05} \\
+ \bottomrule
+ \end{tabular}
+ }
+ \captionsetup{skip=4pt}
+ \caption{
+ Performance impact of alternating-tree reuse in X-Blossom on CPUs and GPUs.
+ All reported runtimes of XB, XB-Pro, XB-GPU, and XB++ are in seconds.
+ CPU speedup is computed as XB/XB-Pro; GPU speedup is computed as XB-GPU/XB++.
+ ReuseRatio reports the percentage of alternating-tree nodes that are reused rather than reset.
+ Runtime and ReuseRatio entries are reported as mean $\pm$ 95\% confidence interval over 20 rounds.
+ }
+ \label{tab:reuse}
+\vspace{-4pt}
+\end{table*}

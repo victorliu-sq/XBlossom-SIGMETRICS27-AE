@@ -1,0 +1,16 @@
+# Profiling Option (default OFF)
+option(MM_PROFILE "Enable Profiling for XBlossomEngine" OFF)
+
+if(MM_PROFILE)
+    message(STATUS "MM_PROFILE enabled: Profiling code activated.")
+    add_compile_definitions(MM_PROFILE)
+else()
+    message(STATUS "MM_PROFILE disabled: Profiling code deactivated.")
+endif()
+
+file(GLOB_RECURSE XBLOSSOM_SRC_LIST "${CMAKE_CURRENT_SOURCE_DIR}/*.cu")
+set_source_files_properties(${XBLOSSOM_SRC_LIST} PROPERTIES LANGUAGE CXX)
+message(STATUS "Building XblsmLib for XB-Pro CPU")
+add_library(XblsmLib SHARED ${XBLOSSOM_SRC_LIST})
+target_link_libraries(XblsmLib PUBLIC glog::glog)
+target_include_directories(XblsmLib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../include")

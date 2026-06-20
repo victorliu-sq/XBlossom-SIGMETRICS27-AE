@@ -1,0 +1,1 @@
+In AWS, only those machines with suffix `metal`, such as `m7i.metal-24xl` allows you to access uncore hardware counters like LLC misses, LLC hits.

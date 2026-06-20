@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../common.sh"
+
+METRICS_DIR="${PROJECT_DIR}/tmp/15_throughput_bbss/bfs_gunrock"
+RESULTS_DIR="${PROJECT_DIR}/results/15_throughput_bbss"
+STAMP="${RESULTS_DIR}/.stamp.throughput_bfs_gunrock"
+ANALYZE_SCRIPT="${SCRIPT_DIR}/analyze_throughput.sh"
+SUMMARY_CSV_TEMP="${METRICS_DIR}/_bfs_gunrock_throughput_summary.csv"
+SUMMARY_CSV="${RESULTS_DIR}/throughput_bfs_gunrock.csv"
+
+if [[ -f "$STAMP" ]]; then
+  echo "Experiment 15 Gunrock-BFS throughput already generated (stamp found)"
+  exit 0
+fi
+
+require_executable "$GUNROCK_BFS_THROUGHPUT_BIN" "Gunrock BFS throughput binary"
+rm -rf "$METRICS_DIR"
+mkdir -p "$METRICS_DIR" "$RESULTS_DIR"
+
+for entry in "${DATASET_BFS_LIST[@]}"; do
+  IFS='|' read -r DATASET _LIGRA_GRAPH GUNROCK_GRAPH SRC_FILE <<< "$entry"
+  require_file "$GUNROCK_GRAPH" "${DATASET} Gunrock graph"
+  require_file "$SRC_FILE" "${DATASET} source list"
+  SRC="$(first_source_node "$SRC_FILE")"
+  TIMING_OUT="${METRICS_DIR}/bfs_gunrock_${DATASET}_throughput.txt"
+  : > "$TIMING_OUT"
+
+  echo "Running Gunrock-BFS throughput on ${DATASET} (src=${SRC})..."
+  "$GUNROCK_BFS_THROUGHPUT_BIN" -s "$SRC" -m "$GUNROCK_GRAPH" | tee -a "$TIMING_OUT"
+  "$ANALYZE_SCRIPT" "$DATASET" "$TIMING_OUT" "$SUMMARY_CSV_TEMP"
+done
+
+cp "$SUMMARY_CSV_TEMP" "$SUMMARY_CSV"
+touch "$STAMP"
+echo "Summary saved at ${SUMMARY_CSV}"

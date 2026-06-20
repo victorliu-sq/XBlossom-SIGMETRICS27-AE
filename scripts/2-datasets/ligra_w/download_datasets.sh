@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[Datasets] Download weighted Ligra SSSP datasets"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="${PROJECT_DIR:-$(cd "${SCRIPT_DIR}/../../.." && pwd)}"
+DATASETS_DIR="${PROJECT_DIR}/data/ligra_w"
+CONDA_ENV_NAME="${CONDA_ENV_NAME:-graph-env}"
+DATASET_STAMP=".stamp.csr_to_ligra_w"
+TARBALL="ligra_datasets_w.tar.gz"
+DEFAULT_URL="https://buckeyemailosu-my.sharepoint.com/:u:/g/personal/liu_11080_buckeyemail_osu_edu/IQArnIiCjtHEQI9JZ_M0HNOUAYzAb6tSar8EOuvO7spJvW8?e=TrD4Fr"
+URL="${LIGRA_W_DATASETS_URL:-${DEFAULT_URL}}"
+PY_SCRIPT="${SCRIPT_DIR}/download_dataset.py"
+
+if [[ -z "$URL" ]]; then
+  echo "Set LIGRA_W_DATASETS_URL to the uploaded ${TARBALL} link." >&2
+  exit 1
+fi
+
+mkdir -p "${DATASETS_DIR}"
+pushd "${DATASETS_DIR}" >/dev/null
+
+if [[ ! -f "${DATASET_STAMP}" ]]; then
+  echo "[download] Downloading weighted Ligra SSSP datasets ..."
+  conda run -n "${CONDA_ENV_NAME}" --live-stream python3 "${PY_SCRIPT}" "${URL}" "${TARBALL}"
+  tar -xzf "${TARBALL}"
+  rm -f "${TARBALL}"
+  touch "${DATASET_STAMP}"
+  echo "[download] Weighted Ligra SSSP datasets done!"
+else
+  echo "[download] Weighted Ligra SSSP datasets already exist, skipping download"
+fi
+
+popd >/dev/null

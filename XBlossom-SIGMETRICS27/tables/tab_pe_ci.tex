@@ -1,0 +1,51 @@
+\begin{table}[H]
+\Huge
+\centering
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.0}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{l|cccc|cccc|cccc}
+\toprule
+ & \multicolumn{4}{c|}{\textbf{CPU}}
+ & \multicolumn{4}{c|}{\textbf{GPU}}
+ & \multicolumn{4}{c}{\textbf{CPU--GPU Scaling}} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-9} \cmidrule(lr){10-13}
+Dataset &
+BFS-Ligra &
+SSSP-Ligra &
+MSSP-Ligra &
+XB-Pro &
+BFS-Gunrock &
+SSSP-Gunrock &
+MSSP-Gunrock &
+XB++ &
+BFS ($\times$) &
+SSSP ($\times$) &
+MSSP ($\times$) &
+XB ($\times$) \\
+\midrule
+GPlus         & 132.96 $\pm$ 0.4754 & 178.35 $\pm$ 0.4189 & 218.04 $\pm$ 1.364 & 34.79 $\pm$ 0.7836 & 710.83 $\pm$ 6.596 & 736.43 $\pm$ 2.238 & 896.52 $\pm$ 26.39 & 2729.93 $\pm$ 92.78 & 5.35$\times$ & 4.13$\times$ & 4.11$\times$ & 78.48$\times$ \\
+Twitch        & 119.87 $\pm$ 0.2095 & 150.44 $\pm$ 0.3168 & 199.31 $\pm$ 1.257 & 20.00 $\pm$ 0.9239 & 535.52 $\pm$ 2.769 & 562.65 $\pm$ 2.661 & 626.35 $\pm$ 9.161 & 1137.65 $\pm$ 85.54 & 4.47$\times$ & 3.74$\times$ & 3.14$\times$ & 56.89$\times$ \\
+Amazon        & 72.99 $\pm$ 0.0738 & 80.73 $\pm$ 0.0610 & 134.44 $\pm$ 0.1694 & 15.32 $\pm$ 0.1750 & 73.89 $\pm$ 0.4351 & 87.73 $\pm$ 0.6838 & 140.80 $\pm$ 2.530 & 636.42 $\pm$ 12.11 & 1.01$\times$ & 1.09$\times$ & 1.05$\times$ & 41.55$\times$ \\
+HiggsNets     & 88.95 $\pm$ 0.1430 & 41.81 $\pm$ 0.1667 & 49.40 $\pm$ 0.2503 & 13.25 $\pm$ 0.1706 & 826.49 $\pm$ 9.187 & 876.90 $\pm$ 8.348 & 968.16 $\pm$ 29.82 & 2744.16 $\pm$ 78.00 & 9.29$\times$ & 20.98$\times$ & 19.60$\times$ & 207.05$\times$ \\
+Youtube       & 122.64 $\pm$ 0.1668 & 69.97 $\pm$ 0.0416 & 90.62 $\pm$ 0.1727 & 10.17 $\pm$ 0.1510 & 333.79 $\pm$ 4.569 & 372.13 $\pm$ 3.962 & 427.21 $\pm$ 10.73 & 2579.34 $\pm$ 40.73 & 2.72$\times$ & 5.32$\times$ & 4.71$\times$ & 253.74$\times$ \\
+Hyperlink     & 188.97 $\pm$ 0.3353 & 120.81 $\pm$ 1.841 & 116.35 $\pm$ 1.358 & 19.32 $\pm$ 0.3201 & 1531.85 $\pm$ 10.55 & 1578.79 $\pm$ 7.994 & 1859.72 $\pm$ 38.53 & 5027.41 $\pm$ 105.4 & 8.11$\times$ & 13.07$\times$ & 15.98$\times$ & 260.23$\times$ \\
+Wikipedia     & 206.16 $\pm$ 0.3740 & 29.17 $\pm$ 0.0189 & 33.12 $\pm$ 0.0903 & 12.08 $\pm$ 0.3178 & 335.23 $\pm$ 1.178 & 355.55 $\pm$ 1.042 & 585.73 $\pm$ 18.15 & 4917.11 $\pm$ 93.65 & 1.63$\times$ & 12.19$\times$ & 17.68$\times$ & 407.21$\times$ \\
+Stackoverflow & 158.46 $\pm$ 0.1652 & 47.96 $\pm$ 0.1284 & 55.59 $\pm$ 0.2038 & 10.29 $\pm$ 0.1405 & 1641.31 $\pm$ 6.812 & 1671.18 $\pm$ 7.045 & 2136.65 $\pm$ 35.00 & 8131.88 $\pm$ 96.58 & 10.36$\times$ & 34.85$\times$ & 38.43$\times$ & 790.55$\times$ \\
+Patent        & 126.17 $\pm$ 0.1540 & 92.77 $\pm$ 0.1537 & 106.45 $\pm$ 0.3550 & 9.82 $\pm$ 0.1388 & 1107.28 $\pm$ 6.598 & 1191.08 $\pm$ 6.608 & 2130.77 $\pm$ 30.79 & 4969.61 $\pm$ 227.8 & 8.78$\times$ & 12.84$\times$ & 20.02$\times$ & 506.11$\times$ \\
+Livejournal   & 153.34 $\pm$ 0.4638 & 62.59 $\pm$ 0.2923 & 81.33 $\pm$ 0.4273 & 14.77 $\pm$ 0.2303 & 2351.82 $\pm$ 11.99 & 2476.40 $\pm$ 10.99 & 3991.76 $\pm$ 50.91 & 5174.86 $\pm$ 58.62 & 15.34$\times$ & 39.56$\times$ & 49.08$\times$ & 350.38$\times$ \\
+\midrule
+Average       & 137.05 & 87.46 & 108.46 & 15.98 & 944.80 & 990.88 & 1376.37 & 3804.84 & 6.70$\times$ & 14.78$\times$ & 17.38$\times$ & 295.22$\times$ \\
+\bottomrule
+\end{tabular}
+}
+\captionsetup{skip=4pt}
+\caption{
+Comparison of instruction execution rates for BFS, SSSP, MSSP, and X-Blossom variants on CPUs and GPUs.
+Instruction execution rates are reported in GIPS as mean $\pm$ 95\% confidence interval over 20 rounds.
+CPU--GPU scaling reports the instruction throughput improvement when migrating execution from CPU to GPU.
+Rows follow increasing node count.
+}
+\label{tab:pe-ci}
+\vspace{-4pt}
+\end{table}

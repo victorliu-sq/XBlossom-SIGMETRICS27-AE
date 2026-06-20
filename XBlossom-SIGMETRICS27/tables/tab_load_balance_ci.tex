@@ -1,0 +1,40 @@
+\begin{table}[H]
+ \scriptsize
+ \centering
+ \setlength{\tabcolsep}{5pt}
+ \renewcommand{\arraystretch}{0.88}
+ \begin{tabular}{l|rrr|rrr}
+ \toprule
+  & \multicolumn{3}{c|}{\textbf{X-Blossom-Pro}}
+  & \multicolumn{3}{c}{\textbf{X-Blossom++}} \\
+ \cmidrule(lr){2-4} \cmidrule(lr){5-7}
+ Dataset &
+ Node-Level &
+ Edge-Level &
+ Speedup &
+ Node-Level &
+ Edge-Level &
+ Speedup \\
+ \midrule
+ GPlus & 1.15 {\tiny $\pm$ 0.0699} & 2.60 {\tiny $\pm$ 0.107} & 0.44$\times$ & 1.06 {\tiny $\pm$ 0.0613} & 0.172 {\tiny $\pm$ 0.0048} & 6.13$\times$ \\
+ Twitch & 0.369 {\tiny $\pm$ 0.0378} & 0.738 {\tiny $\pm$ 0.0570} & 0.5$\times$ & 0.0979 {\tiny $\pm$ 0.0070} & 0.0775 {\tiny $\pm$ 0.0019} & 1.26$\times$ \\
+ Amazon & 0.460 {\tiny $\pm$ 0.0101} & 0.876 {\tiny $\pm$ 0.0197} & 0.525$\times$ & 0.0861 {\tiny $\pm$ 0.0069} & 0.0779 {\tiny $\pm$ 0.0033} & 1.11$\times$ \\
+ HiggsNets & 0.586 {\tiny $\pm$ 0.0276} & 1.16 {\tiny $\pm$ 0.0467} & 0.504$\times$ & 0.102 {\tiny $\pm$ 0.0076} & 0.0731 {\tiny $\pm$ 0.0013} & 1.39$\times$ \\
+ Youtube & 0.331 {\tiny $\pm$ 0.0138} & 0.476 {\tiny $\pm$ 0.0182} & 0.695$\times$ & 0.0157 {\tiny $\pm$ 0.0005} & 0.0155 {\tiny $\pm$ 0.0003} & 1.01$\times$ \\
+ Hyperlink & 3.38 {\tiny $\pm$ 0.106} & 5.49 {\tiny $\pm$ 0.210} & 0.616$\times$ & 0.414 {\tiny $\pm$ 0.0190} & 0.169 {\tiny $\pm$ 0.0026} & 2.45$\times$ \\
+ Wikipedia & 0.444 {\tiny $\pm$ 0.0315} & 0.792 {\tiny $\pm$ 0.0154} & 0.561$\times$ & 0.0123 {\tiny $\pm$ 0.0004} & 0.0146 {\tiny $\pm$ 0.0004} & 0.841$\times$ \\
+ StackOverflow & 1.21 {\tiny $\pm$ 0.0305} & 2.03 {\tiny $\pm$ 0.0643} & 0.596$\times$ & 0.0262 {\tiny $\pm$ 0.0006} & 0.0273 {\tiny $\pm$ 0.0005} & 0.961$\times$ \\
+ Patent & 5.03 {\tiny $\pm$ 0.220} & 6.54 {\tiny $\pm$ 0.259} & 0.77$\times$ & 0.140 {\tiny $\pm$ 0.0102} & 0.114 {\tiny $\pm$ 0.0036} & 1.23$\times$ \\
+ LiveJournal & 7.96 {\tiny $\pm$ 0.304} & 12.2 {\tiny $\pm$ 0.293} & 0.655$\times$ & 0.439 {\tiny $\pm$ 0.0206} & 0.235 {\tiny $\pm$ 0.0025} & 1.87$\times$ \\
+ \bottomrule
+ \end{tabular}
+ \captionsetup{skip=4pt}
+ \caption{
+ All reported runtimes are in seconds.
+ Runtime comparison of X-Blossom-Pro and X-Blossom++ under node-level and edge-level load-balancing strategies.
+ Speedup is computed as node-level runtime divided by edge-level runtime.
+ Runtime entries are reported as mean $\pm$ 95\% confidence interval over 20 rounds.
+ }
+ \label{tab:load-balance-ci}
+\vspace{-4pt}
+\end{table}

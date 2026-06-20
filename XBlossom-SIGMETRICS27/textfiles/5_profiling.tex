@@ -1,0 +1,250 @@
+\section{Architecture Suitability Determination based on Resource Utilization}
+\label{sec:arch_suitability}
+Multi-core CPUs and GPUs represent distinct architectural trade-offs: CPUs have complex cores for fast multi-threaded execution, while GPUs rely on a large number of simple CUDA cores to achieve massive parallelism.
+Accordingly, multi-core CPUs and GPUs achieve high performance in fundamentally different ways: CPUs reduce latency via complex hardware mechanisms and large caches, while GPUs \textcolor{blue}{reduce} amortized latency through massive parallelism.
+Recent studies have largely emphasized GPU acceleration for parallel applications; however, such studies face two limitations.
+First, GPUs are not a one-size-fits-all solution for all workloads.
+Second, multi-core CPUs offer advanced architectural features that enable high performance, including out-of-order superscalar execution, deep pipelining, branch prediction, and large shared L3 caches in addition to per-core L1 and L2 caches.
+The effectiveness of these hardware resources is highly workload-dependent.
+In this section, we introduce a profiling-based approach and present case studies of four representative traversal-based graph primitives, BFS, SSSP, MSSP, and the blossom algorithm, to assess their architectural suitability. 
+This enables informed decisions on whether a traversal-based graph workload is better suited to multi-core CPUs or GPUs.
+
+\subsection{Baselines.}
+\label{subsec:baselines}
+% In addition to the original X-Blossom implementation, X-Blossom-Pro, and X-Blossom++, we evaluate and profile breadth-first search (BFS) implementations on both CPU and GPU using two state-of-the-art graph processing frameworks: Ligra \cite{shun2013ligra} and Gunrock \cite{wang2016gunrock}. 
+% We denote these BFS implementations as BFS-Ligra and BFS-Gunrock, respectively.
+In addition to XB-Pro and XB++, we evaluate and profile three representative traversal-based graph primitives, BFS, SSSP, and MSSP, on both CPUs and GPUs using two state-of-the-art graph processing frameworks, Ligra \cite{shun2013ligra} and Gunrock \cite{wang2016gunrock}.
+For MSSP, we randomly select source vertices equal to 5\% of all graph nodes.
+We denote these implementations by their algorithm and framework, e.g., BFS-Ligra and BFS-Gunrock.
+% Why do we need BFS?
+These baselines serve as complementary case studies through which we apply our profiling-based methodology introduced in \S~\ref{sec:arch_suitability} and demonstrate its effectiveness in explaining traversal behavior, identifying the dominant performance bottlenecks, and guiding architecture selection between multi-core CPUs and GPUs.
+
+% Ligra and Gunrock
+Both Ligra and Gunrock are open-source frameworks that have been actively updated since their first releases.
+Ligra is a shared-memory graph processing framework designed for multi-core CPUs, whereas Gunrock is a GPU-based graph analytics framework.
+\textcolor{blue}{In our baselines, Ligra parallelizes traversal operators with OpenMP, while Gunrock executes traversal kernels through its CUDA-based graph analytics runtime.}
+% Why
+Although some prior work has reported traversal implementations that outperform Ligra (e.g., \cite{zhang2018graphit}) and Gunrock (e.g., \cite{wang2019sep}) on particular datasets under architecture-specific optimizations, we deliberately select Ligra and Gunrock as baselines because they remain in active use and development and are widely adopted as reference implementations in prior graph processing studies \cite{zhang2018graphit, nguyen2013lightweight, zhu2016gemini, wang2016gunrock, wang2019sep, brahmakshatriya2021compiling}.
+Moreover, both frameworks adopt abstraction models that closely align with the BSP model, making their implementations highly comparable despite targeting different architectures.
+Their respective publications also provide direct CPU-GPU comparisons, which serve as established reference points that support the credibility of our experimental results and reinforce the validity of our conclusions.
+
+% In these systems, traversal-based graph primitives have been parallelized in either shared-memory systems, including multi-core CPU frameworks \cite{shun2013ligra, zhang2018graphit, nguyen2013lightweight} and GPU-accelerated frameworks \cite{wang2019sep, wang2016gunrock, brahmakshatriya2021compiling, ben2017groute, wang2023hytgraph, wang2025towards}, or distributed systems that span many machines \cite{gonzalez2012powergraph, malewicz2010pregel, zhu2016gemini, low2012distributed, chen2019powerlyra, gonzalez2014graphx}.
+% Amazon and Patent have low Max~Deg, which limits their parallelism exploitation.
+
+% \subsection{Two Traversal Characterization Dimensions}
+\subsection{Our Profiling Approach for Traversal-Based Graph Primitives}
+\label{subsec:profiling_method}
+% The performance of traversal-based graph primitives is strongly influenced by the complex interactions between workload irregularity and architectural resources.
+% Graph traversals inherently generate irregular memory-access patterns and uneven parallel workloads, while the underlying platform’s memory hierarchy and execution model determine how efficiently these accesses are handled and how much parallelism can be sustained.
+\phantomsection\label{para:metric-selection-justification}
+% Citation support:
+% graphit_gpu: "The performance of graph programs depends highly on the algorithm, the size and structure of the input graphs"
+% wang2016gunrock: "the irregularity of data access and control flow"
+% green2019memorychannels: "Graph processing is typically considered to be a memory-bound rather than compute-bound problem."
+% beamer2016understanding: "low arithmetic intensity that underutilizes available hardware platforms"
+% beamer2015gail: "a single metric cannot be used, and instead it should be complemented by other metrics."
+% mukkara2017cache: "limited bandwidth and long latency of main memory accesses"
+% beamer2013direction: "As the frontier reaches its largest size, the percentage of peer edges dominates."
+% bfs_levelsync: "memory accesses and work distribution are both irregular and data dependent."
+\textcolor{blue}{
+The performance of traversal-based graph primitives is determined by the interaction among algorithmic structure, input-graph properties, and architectural features \cite{graphit_gpu}.
+    In contrast to dense linear-algebra kernels, traversal algorithms such as BFS, SSSP, MSSP, and blossom perform relatively few arithmetic operations per memory access; their execution is dominated by accesses to sparse graph representations, frontier state, and per-vertex or per-edge metadata \cite{wang2016gunrock,green2019memorychannels}.
+    As a result, peak compute throughput, including FP64, FP32, FP16, and integer throughput, is not by itself a representative measure of the limiting factors for these workloads \cite{beamer2016understanding}.
+    Peak memory bandwidth is also insufficient as a standalone indicator, because graph-analytics performance reflects trade-offs among locality, parallelism, and work efficiency \cite{beamer2015gail}.
+    On CPUs, the effective cost of memory access depends on whether the active working set is served by the cache hierarchy, particularly the last-level cache, or requires repeated accesses to DRAM \cite{mukkara2017cache}.
+    On GPUs, the amount of parallel work is frontier-dependent: some traversal phases expose enough active work to utilize the memory system, whereas others provide insufficient concurrency to saturate bandwidth \cite{beamer2013direction,bfs_levelsync}.
+    Consequently, peak memory bandwidth alone cannot capture the effects of cache locality, memory-system utilization, and available parallelism.
+}
+To explicitly capture these interactions, we characterize traversal execution patterns along two complementary dimensions: \emph{data movement effectiveness} and \emph{parallelism exploitation}.
+
+%Unlike compute-centric kernels (e.g., dense matrix multiplication), which saturate compute pipelines and scale predictably with an architecture’s peak compute throughput,
+%traversal-based graph primitives do not admit such a straightforward characterization.
+% two dimensions to capture the interaction between workloads and architectures
+
+% Data Movement efficiency
+Data movement effectiveness describes how quickly a traversal brings its working set to the compute cores through the memory hierarchy. 
+\textcolor{blue}{The working set refers to the amount of memory that a process requires to complete its execution. For example, BFS requires $O(N)$ memory for the visited array, whereas X-Blossom requires $O(N^2)$ memory for the path table.}
+%This dimension is central for traversal-based graph analytics because they typically exhibit low arithmetic intensity, and their performance is therefore primarily dominated by memory accesses rather than arithmetic operations.
+%From architectural perspectives, multi-core CPUs and GPUs employ fundamentally different mechanisms to deliver data and tolerate memory latency.
+% Parallelism Exploitation
+On the other hand, parallelism exploitation characterizes the extent to which a traversal sustains high instruction throughput by maintaining high thread occupancy. On multi-core CPUs, high instruction throughput is achieved through advanced and complex hardware mechanisms, whereas on GPUs it is achieved by exploiting massive parallelism across many simple operations.
+Unlike iterative primitives that activate all vertices in every iteration and thus provide consistently high parallelism to exploit, the amount of traversal work is largely determined by the size of the current frontier.
+Since the frontier can expand or contract dramatically across iterations, the amount of parallel work available in a traversal can vary widely over time, resulting in highly irregular parallelism.
+
+% Two Types of Profiling Dimensions
+% Along these two dimensions, we propose a profiling-based approach that evaluates platform suitability for traversal workloads using a set of characterization measures derived from low-level profiling metrics on multi-core CPUs and GPUs.
+Along these two dimensions, we propose a set of characterization measures derived from low-level profiling metrics on multi-core CPUs and GPUs.
+On CPUs, we use the L3 cache miss rate and L3 cache miss frequency, namely the \emph{LLC miss rate} and \emph{LLC miss frequency} to reflect how effectively the LLC is utilized, since CPU performance depends strongly on cache behavior to reduce average memory-access latency. 
+These two cache-based measures are not applicable on GPUs, where performance is typically dominated by sustained device memory bandwidth and mechanisms that \textcolor{blue}{reduce} effective latency through concurrency.
+Accordingly, we use \emph{effective memory bandwidth} to capture the attainable throughput from GPU device memory.
+To characterize the parallelism exploitation dimension, we use the \emph{instruction execution rate} on both CPUs and GPUs to quantify how effectively the processor issues and retires instructions given the available parallel work.
+Together, these measures indicate whether a traversal workload is primarily constrained by data movement or by limited exploitable parallelism, providing a principled basis for evaluating hardware utilization and platform suitability.
+
+
+\newcommand{\mcode}[1]{\text{\ttfamily\url{#1}}} % code-ish text that can break
+\newcommand{\per}[2]{#1\,/\,#2}
+
+\input{tables/tab_derived_measures}
+
+We summarize all derived measures in Table~\ref{tab:derived-measures}. 
+The last two columns describe each measure and show how it is computed from the profiling counters used in our scripts.
+In addition to the execution time $t_{\text{exec}}$, we collect CPU metrics using \texttt{perf}, the standard Linux performance profiling tool that exposes hardware performance counters, and GPU metrics using NVIDIA Nsight Compute (\texttt{ncu}), a GPU profiling tool that reports low-level kernel counters.
+% CPU
+On CPUs, the \emph{instruction execution rate} is derived from \emph{instructions}, which counts retired instructions, and is normalized by $t_{\text{exec}}$. 
+To characterize CPU data movement, we use the Intel events \emph{mem\_load\_retired.l3\_miss} and \emph{mem\_load\_retired.l3\_hit}, which count retired loads that miss or hit in the L3 cache. 
+The LLC miss rate is computed as misses divided by LLC accesses, and the LLC miss frequency is computed as misses divided by $t_{\text{exec}}$. Together, these measures reflect how effectively the LLC captures reuse and reduces DRAM traffic.
+% GPU
+On GPUs, the \emph{instruction execution rate} is derived from
+\emph{sm\_\_sass\_thread\_inst\_executed.sum}, which aggregates the number of instructions executed by active threads across all streaming multiprocessors.
+For data movement, we use \emph{dram\_\_bytes\_op\_read.sum}, which reports DRAM read bytes and is normalized by $t_{\text{exec}}$ to obtain effective memory bandwidth.
+
+\subsection{Architectural Suitability of Traversal-Based Graph Primitives}
+We now apply our profiling-based methodology to examine hardware resource utilization and to evaluate the architectural suitability of BFS, SSSP, MSSP, and X-Blossom. 
+Specifically, we profile both CPU and GPU implementations of these primitives introduced in \S~\ref{subsec:baselines}, enabling a comparative analysis across architectures.
+% BFS/SSSP/MSSP
+On each dataset, BFS-Ligra, SSSP-Ligra, MSSP-Ligra, BFS-Gunrock, SSSP-Gunrock, and MSSP-Gunrock use the same source-node inputs for the corresponding algorithm, selected from the largest connected component of the graph.
+% X-Blossom
+In accordance with the architecture-dependent load-balancing strategies discussed in \S~\ref{subsubsec:exp_load_balancing}, XB-Pro employs a node-level strategy, whereas XB++ uses edge-level scheduling to better align with GPU execution.
+% CPU
+On multi-core CPUs, we profile BFS-Ligra, SSSP-Ligra, MSSP-Ligra, and XB-Pro using \emph{perf}, where 
+%following a methodology similar to prior work~\cite{zhu2016gemini}. 
+each benchmark is executed 20 times, and both runtime and profiling metrics are averaged across runs to mitigate run-to-run variability and obtain stable measurements.
+% GPU
+On GPUs, we evaluate and profile BFS-Gunrock, SSSP-Gunrock, MSSP-Gunrock, and XB++ using separate runtime and profiling executions to account for the non-negligible overhead introduced by \texttt{ncu}. 
+Specifically, each benchmark is executed 20 times without instrumentation to obtain accurate average runtime measurements, and is executed an additional 20 times with \texttt{ncu} instrumentation to collect low-level profiling counters that characterize architectural behavior.
+\subsubsection{Runtime Comparison of Four Traversal-Based Algorithms}
+\label{subsubsec:runtime-comparison}
+
+The average runtimes of BFS, SSSP, MSSP, and X-Blossom implementations (mean over 20 runs) are reported in Figure~\ref{plot:runtimes}.
+SSSP-Ligra and MSSP-Ligra perform well on the three smallest datasets, while the GPU implementations outperform them on the remaining larger graphs. Overall, the GPU speedup trend follows X-Blossom $>$ MSSP $>$ SSSP $>$ BFS, indicating that GPU benefits increase with the amount of exploitable parallel work. These runtime results validate the baseline measurements used in our profiling-based analysis and motivate the need to explain why BFS, SSSP, MSSP, and X-Blossom exhibit different CPU-GPU scaling behavior.
+%These results show that GPU execution is not uniformly beneficial across traversal primitives and datasets. XB++ outperforms XB-Pro on all datasets with high speedups, whereas BFS-Ligra is faster than BFS-Gunrock on nearly all datasets except the two largest graphs.
+
+\begin{figure}[t]
+    \centering
+    \captionsetup{skip=4pt}
+    \caption{
+    Performance comparison between CPU and GPU graph traversal implementations. The rows show X-Blossom, BFS, SSSP, and MSSP, comparing the CPU implementation (XB-Pro or Ligra) against the GPU implementation (XB++ or Gunrock). Numbers above GPU bars denote CPU runtime divided by GPU runtime; red values indicate cases with no or only negligible speedup.
+    }
+    \includegraphics[width=1.0\columnwidth]{figures/plots/plot_runtimes.png}
+    \label{plot:runtimes}
+\vspace{-4pt}
+\end{figure}
+
+
+\subsubsection{Parallelism Exploitation}
+\label{subsubsec:pe}
+
+We first examine instruction execution rate for each of the four baselines, serving as an important indicator on how inherent parallelism in each implementation is effectively exploited on both CPU and GPU. 
+
+
+\input{tables/tab_pe}
+
+
+
+% ==========================================================================
+% Comparison across traversal primitives on the same platform
+The CPU and GPU column groups in Table~\ref{tab:pe} compare the instruction execution rates of BFS, SSSP, MSSP, and X-Blossom on the same hardware platform.
+%highlighting how each algorithm exploits available parallelism on CPUs and GPUs.
+% CPU
+On multi-core CPUs, the Ligra implementations of BFS, SSSP, and MSSP all achieve higher average instruction execution rates than XB-Pro, with averages of 137.05, 87.46, and 108.46 GIPS compared with 15.98 GIPS for XB-Pro.
+This indicates that the conventional traversal primitives sustain substantially higher CPU instruction throughput than X-Blossom on the evaluated datasets.
+Their higher instruction issue rates stem from smaller $O(n)$ per-vertex state and simpler per-frontier operations, which let out-of-order CPU cores find ready instructions and benefit from cache-served memory accesses.
+% Why XB-Pro's instruciton exection rate is low.
+In contrast, XB-Pro has a much larger working set, dominated by its $O(n^2)$ path table, increasing cache pressure.
+Moreover, its node-level load-balancing strategy, though effective for complex operations such as augmenting-path discovery, alternating-tree expansion, and blossom handling, exposes limited parallelism on CPUs. 
+This effect is evidenced in Figure~\ref{plot:inst_ratio}, where the node-level strategy consistently attains a lower instruction issue rate on CPUs than the edge-level strategy.
+%As a result, the available parallel work is insufficient to fully occupy CPU cores, leading to lower sustained instruction execution rates.
+\begin{figure}[t]
+    \centering
+    \captionsetup{skip=4pt}
+    \caption{Instruction issue rate of XB-Pro under node- and edge-level load balancing strategies; numbers above edge bars show the amplification factor (edge-level rate by node-level rate).}
+    \includegraphics[width=1.0\columnwidth]{figures/plots/plot_inst_ratio.png}
+    \label{plot:inst_ratio}
+\vspace{-8pt}
+\end{figure}
+
+% comparison between BFS, SSSP, and MSSP
+Another CPU-side observation is that the three traversal baselines, BFS, SSSP, and MSSP, exhibit different instruction-rate trends as dataset size changes.
+On small datasets such as GPlus, Twitch, and Amazon, the active state of SSSP and MSSP fits the LLC more effectively, consistent with their lower LLC miss rates in Table~\ref{tab:memory}; as a result, their additional per-vertex update instructions beyond BFS-style traversal can be issued soon after the dependent memory loads complete.
+Because MSSP additionally exposes independent frontier work from multiple sources, the small-dataset ordering is MSSP $>$ SSSP $>$ BFS.
+On larger datasets, reduced LLC residency increases dependent-load latency in SSSP and MSSP, causing their extra instructions to stall more often behind memory accesses.
+BFS therefore often sustains a higher instruction rate through straightforward adjacency scans, while MSSP remains above SSSP because of more parallel frontier work.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% XB-Pro Inst Rate for Node / Edge
+
+% GPU
+\phantomsection\label{para:inst_gpu}
+On GPUs (see the middle column block under GPU in Table~\ref{tab:pe}), the performance results are largely reversed: 
+\textcolor{blue}{XB++ achieves the highest instruction issue rate on all evaluated graphs, with an average of 3804.84 GIPS compared with 944.80, 990.88, and 1376.37 GIPS for BFS-Gunrock, SSSP-Gunrock, and MSSP-Gunrock, respectively.}
+% X-Blossom++ (XB++) sustains higher instruction execution rates than BFS-Gunrock on most datasets, with GPU-side ratios exceeding 1$\times$ in the majority of cases and an average speedup of about 2.43$\times$ in this table. 
+This improved performance reflects both XB++'s ability to expose more exploitable parallelism through a fine-grained load balancing strategy and the GPU's capacity to maintain high occupancy and hide branching and synchronization overhead via massive multithreading. 
+XB++ exposes high parallelism because it activates many vertices concurrently in the initial stage, and repeated clearing and rebuilding of alternating trees regenerates substantial parallel work.
+Although BFS and SSSP both start from one source, GPU warp scheduling lets SSSP's extra update work proceed from ready resident warps while other warps wait on memory.
+MSSP further increases parallelism by starting from many sources, yielding the ordering XB++ $>$ MSSP-Gunrock $>$ SSSP-Gunrock $>$ BFS-Gunrock across all datasets in Table~\ref{tab:pe}.
+
+These four traversal baselines also show different CPU and GPU trends because their bottlenecks differ by architecture.
+On CPUs, smaller datasets such as GPlus, Twitch, and Amazon let the active working set fit more effectively in the LLC; therefore, SSSP, MSSP, and XB-Pro generally achieve higher instruction rates on smaller datasets than on larger ones.
+On GPUs, however, the trend reverses: issue rate is driven mainly by available parallelism,
+so larger datasets expose more concurrent work and sustain higher rates, while small graphs often underutilize the GPU.
+
+% ==========================================================================
+% Migration from CPU to GPU
+The CPU--GPU scaling columns of Table~\ref{tab:pe} report instruction-rate scaling when migrating from CPU to GPU execution for all four primitives. 
+On average, X-Blossom achieves a 295.22$\times$ instruction-rate scaling, substantially higher than BFS (6.70$\times$), SSSP (14.78$\times$), and MSSP (17.38$\times$), indicating that X-Blossom benefits more substantially from GPU execution.
+
+% This superior scaling stems from X-Blossom’s ability to expose abundant fine-grained parallelism via its edge-level load-balancing strategy: 
+% Trend
+% Although X-Blossom includes highly-sequential blossom operations, which can limit the parallel efficiency, their impact can be mitigated on GPUs as graph size grows and more parallelism becomes available. 
+% This effect is reflected in the CPU–GPU scaling results for X-Blossom, where larger graphs consistently yield higher scaling ratios, indicating richer exploitable parallel work and improved utilization of GPU resources. 
+% While a similar trend can be observed for BFS, it is substantially weaker and exhibits greater variability, underscoring BFS cannot expose sufficient parallelism to fully leverage GPU architectures.
+% Conclusion
+% Overall, our results demonstrate that X-Blossom is fundamentally better suited to GPU execution than CPU execution with the following reasons. 
+% Although intricate operations such as blossom handling can reduce parallel efficiency, X-Blossom simultaneously exposes substantially richer fine-grained parallelism, enabling GPUs to hide these overheads and achieve higher hardware utilization. 
+% In contrast, despite its straightforward execution pattern, BFS exposes limited parallelism and therefore benefits much less from GPU architectures.
+
+\subsubsection{Data Movement Effectiveness}
+In this section, we examine the \emph{LLC miss rate} and \emph{LLC misses frequency} on CPUs for BFS-Ligra, SSSP-Ligra, MSSP-Ligra, and XB-Pro as indicators of how effectively each implementation leverages the large LLC to reduce memory-access latency. 
+In contrast, on GPUs we use \emph{effective memory bandwidth} for BFS-Gunrock, SSSP-Gunrock, MSSP-Gunrock, and XB++ to capture how efficiently each implementation utilizes massive concurrency to \textcolor{blue}{reduce} effective memory latency and sustain high device-memory throughput.
+
+\input{tables/tab_memory}
+
+% ==========================================================================
+% CPU-LLC Miss Rate & LLC miss frequency
+Table~\ref{tab:memory} reports two CPU-side cache metrics for BFS-Ligra, SSSP-Ligra, MSSP-Ligra, and XB-Pro.
+The \emph{LLC miss rate} measures the fraction of missed accesses to LLC, while \emph{LLC misses frequency} captures the absolute rate of LLC misses during execution. 
+Together, these metrics characterize how effectively each implementation leverages the last-level cache to reduce memory-access latency. 
+On average, SSSP-Ligra and MSSP-Ligra have the lowest LLC miss rates (1.58\% and 1.79\%) and miss frequencies (10.71 and 11.42 million misses/s), while XB-Pro has a lower average miss rate than BFS-Ligra (4.38\% vs. 6.12\%) and a lower average miss frequency (16.18 vs. 32.89 million misses/s). %suggesting more effective cache utilization.
+Overall, both CPU cache metrics follow BFS $>$ XB-Pro $>$ SSSP/MSSP.
+BFS issues sparse adjacency accesses with little per-edge computation, so it generates LLC misses quickly.
+SSSP and MSSP spend more time on relaxation and distance updates between memory requests; XB-Pro falls between them because blossom processing reuses fetched path-table data despite $O(n^2)$ path-table pressure.
+
+% 2. GPU-Effective Memory Bandwidth
+On GPUs, XB++ achieves the highest average effective memory bandwidth, 223.80 GB/s, compared with 50.01, 75.77, and 106.93 GB/s for BFS-Gunrock, SSSP-Gunrock, and MSSP-Gunrock, respectively. 
+This shows the benefit of XB++'s edge-level parallelism.
+By exposing substantially more concurrency than BFS, SSSP, and MSSP, XB++ keeps more warps active and sustains a higher memory request rate, which helps \textcolor{blue}{reduce} amortized latency and enables more effective utilization of the GPU's high-bandwidth memory system.
+The main exception is GPlus, where MSSP-Gunrock slightly exceeds XB++ in effective bandwidth, because GPlus has the highest blossom density and the resulting blossom handling introduces control-flow and synchronization work that limits XB++'s memory-bandwidth utilization.
+
+% 3. Conclusion
+To summarize, these memory results show that X-Blossom has competitive CPU cache behavior relative to SSSP/MSSP and substantially higher GPU memory-bandwidth utilization than all Gunrock traversal baselines.
+On CPUs, XB-Pro improves efficient LLC utilization through increased data reuse, while on GPUs, XB++ better harnesses its abundant parallelism to sustain higher effective memory bandwidth.
+
+\subsubsection{Our Findings and general recommendations}
+% Parallelism is all you need
+The degree of exploitable parallelism largely determines whether migrating BFS, SSSP, MSSP, or X-Blossom from CPU to GPU is beneficial.
+% X-Blossom
+On CPUs, XB-Pro leverages the LLC effectively for its high locality. 
+Migrating to GPUs diminishes these cache-related benefits and exposes the overheads of complex and sequential blossom operations. 
+Nevertheless, X-Blossom provides substantial fine-grained parallelism, allowing XB++ to keep a large number of warps active and effectively \textcolor{blue}{reduce} effective memory latency, overcoming these drawbacks to achieve significant GPU speedups over CPU execution. Thus, XB++ is best fit on GPU for high performance.  
+
+% BFS
+In contrast, BFS, SSSP, and MSSP execute simpler traversal operations and sustain substantially higher instruction throughput on CPUs than XB-Pro.  
+%so moving away from cache-centric execution tends to incur a smaller penalty
+%Moreover, BFS is dominated by simple graph-traversal operations, which are, in principle, well suited to GPU execution.
+When migrated to GPUs, their benefits vary with the amount of frontier-level parallelism. 
+BFS shows the weakest average instruction-rate scaling (6.70$\times$), while SSSP and MSSP achieve higher but still moderate scaling (14.78$\times$ and 17.38$\times$), far below X-Blossom's 295.22$\times$ scaling. 
+As a result, these conventional traversal primitives are less uniformly GPU-favorable than X-Blossom in our measurements; BFS in particular often achieves limited or even negative runtime gains on GPUs, which is consistent with prior CPU-focused BFS optimization work \cite{shun2015ligraplus,zhang2018graphit}.
+
+% Conclusion 
+The case studies presented in this paper can be generalized to other applications using our profiling-based methodology.
+Based on our analysis of parallelism exploitation, data-movement efficiency, and observed runtime results in this study, we articulate the following guiding principle to address the architectural suitability. Workloads exhibiting high degrees of parallelism in both computation and data movement benefit significantly more from GPU architectures than from multi-core CPUs, as reflected by high instruction issue rates and high effective memory bandwidth on GPUs. In contrast, workloads with relatively limited parallelism and small working sets of high locality are better suited to multi-core CPUs, which can achieve high performance by effectively exploiting complex core micro-architectures and deep memory hierarchies.

@@ -1,0 +1,34 @@
+%%
+%% The abstract is a short summary of the work to be presented in the
+%% article.
+\begin{abstract}
+
+Traversal-based graph analytics are a fundamental class of graph workloads involving systematically visiting vertices in a graph to explore its structure in a specific order. \textcolor{blue}{Breadth-First Search (BFS)}, \textcolor{blue}{Single-Source Shortest Path (SSSP)}, and \textcolor{blue}{Multiple-Source Shortest Path (MSSP)} are representative algorithms in this class. Traversal-based graph analytics are crucial in many fields including artificial intelligence, network analysis, social media, and many others.  We have conducted a comprehensive, performance- and measurement-driven study to understand the behavior, insights, and implications of traversal-based graph analytics on both multi-core \phantomsection\label{para:first-cpu-gpu}\textcolor{blue}{Central Processing Units (CPUs)} and \textcolor{blue}{Graphics Processing Units (GPUs)}. 
+We introduce a set of performance profiling metrics, including instruction issue rate on both CPUs and GPUs; L3 cache miss rate and miss frequency on CPUs; and effective device memory bandwidth on GPUs, capturing most critical architectural factors to uncover program execution dynamics. 
+
+In addition to BFS, SSSP, and MSSP, our study also includes the blossom algorithm, a foundational method to compute maximum matchings in general graphs.  X-Blossom, a recently proposed parallel framework of blossom algorithm, currently has an implementation only on multi-core CPUs. With our optimizations, its CPU performance improves by up to $3.26\times$. More importantly, we have developed a highly efficient GPU implementation of X-Blossom that achieves up to $39.09\times$ speedup over X-Blossom-Pro. 
+
+While recent studies largely emphasize the massive parallelism of GPUs, not all applications can exploit it effectively.
+Our intensive evaluation of four traversal-based graph primitives with distinct parallelism, locality, and computation patterns shows that the proposed profiling approach can characterize execution bottlenecks and determine architectural suitability between CPUs and GPUs.
+We believe our profiling methodology is a practical approach for analyzing other parallel-processing applications to understand their performance with respect to the interaction between parallelism, data movement, and architectural resources.
+
+% % Background 
+% The blossom algorithm is a foundational method for computing maximum matchings in general graphs, supporting critical resource-allocation tasks in diverse domains such as logistics planning, large-scale clustering, and dynamic cloud scheduling. 
+% As these workloads in modern applications scale to billion-edge graphs, it becomes essential to design high-performance algorithms to meet their stringent runtime and scalability requirements.
+% % Issues with the SOTA work
+% X-Blossom, a recently proposed parallel framework of blossom algorithm, makes an important step in this direction,
+% but still leaves substantial performance headroom in its multi-core CPU implementation due to several inefficiencies.
+% More fundamentally, CPUs are latency-oriented and therefore offer relatively few cores, which prevents X-Blossom’s irregular parallelism from being fully exploited.
+% This naturally motivates offloading X-Blossom’s computation to modern throughput-oriented hardware accelerators such as GPUs for additional performance gains.
+% % Summary
+% In this paper, we present a comprehensive, performance- and measurement-driven study of X-Blossom that advances its performance frontier on GPUs and introduces a general methodology for evaluating algorithm–architecture compatibility and guiding CPU–GPU platform selection. 
+% % Performance
+% We first remove major inefficiencies in the existing multi-core implementation, producing an optimized CPU baseline, X-Blossom-Pro, which achieves up to 3.26× speedups. 
+% Building on this variant, we develop X-Blossom++, a GPU-based implementation that fully exploits the framework’s inherent parallelism. Across a broad suite of large real-world graphs, X-Blossom++ consistently outperforms X-Blossom-Pro, achieving an additional speedup of up to 46×.
+% % SIGMETRICS
+% To understand the architectural suitability of X-Blossom, we use breadth-first search (BFS) as an offset workload and implement state-of-the-art BFS and X-Blossom on both CPUs and GPUs. 
+% We then conduct extensive cross-platform measurements of all four implementations using two simple, architecture-agnostic metrics: instruction execution rate and effective memory bandwidth. 
+% The contrast between BFS and X-Blossom reveals distinct metric signatures that explain why X-Blossom is best realized on GPUs. 
+% From this analysis, we distill a general methodology that relates these metric characteristics to architectural suitability, offering practical guidance on when graph workloads should run on CPUs and when GPUs are the preferred platform.
+    
+\end{abstract}

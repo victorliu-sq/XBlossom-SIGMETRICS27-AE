@@ -1,0 +1,24 @@
+\begin{table}[H]
+ \scriptsize
+ \centering
+ \setlength{\tabcolsep}{3pt}
+ \renewcommand{\arraystretch}{1.0}
+ \resizebox{\columnwidth}{!}{%
+ \begin{tabular}{l|cccccccccc}
+ \toprule
+ Dataset & 1 & 2 & 4 & 8 & 16 & 32 & 64 & 96 & 128 & 188 \\
+ \midrule
+ LiveJournal & 69.5 {\tiny $\pm$ 2.41} & 32.7 {\tiny $\pm$ 0.792} & 14.9 {\tiny $\pm$ 0.275} & 7.77 {\tiny $\pm$ 0.244} & 4.06 {\tiny $\pm$ 0.0916} & 2.12 {\tiny $\pm$ 0.0182} & 1.15 {\tiny $\pm$ 0.0295} & 0.820 {\tiny $\pm$ 0.0191} & 0.645 {\tiny $\pm$ 0.0074} & 0.493 {\tiny $\pm$ 0.0112} \\
+ StackOverflow & 8.53 {\tiny $\pm$ 0.144} & 4.40 {\tiny $\pm$ 0.0836} & 2.30 {\tiny $\pm$ 0.0404} & 1.21 {\tiny $\pm$ 0.0224} & 0.629 {\tiny $\pm$ 0.0098} & 0.332 {\tiny $\pm$ 0.0048} & 0.176 {\tiny $\pm$ 0.0043} & 0.128 {\tiny $\pm$ 0.0029} & 0.101 {\tiny $\pm$ 0.0019} & 0.0736 {\tiny $\pm$ 0.0015} \\
+ Patent & 21.9 {\tiny $\pm$ 1.65} & 11.3 {\tiny $\pm$ 0.576} & 6.59 {\tiny $\pm$ 0.638} & 3.32 {\tiny $\pm$ 0.251} & 1.89 {\tiny $\pm$ 0.168} & 0.961 {\tiny $\pm$ 0.0734} & 0.542 {\tiny $\pm$ 0.0398} & 0.354 {\tiny $\pm$ 0.0154} & 0.281 {\tiny $\pm$ 0.0127} & 0.224 {\tiny $\pm$ 0.0127} \\
+ \bottomrule
+ \end{tabular}
+ }
+ \captionsetup{skip=4pt}
+ \caption{
+ XB++ edge-level GPU scalability. Columns report maximum GPU SM counts.
+ Runtime entries are reported as mean $\pm$ 95\% confidence interval over 20 rounds.
+ }
+ \label{tab:xb-pp-edge-gpu-sm-scalability-ci}
+\vspace{-4pt}
+\end{table}

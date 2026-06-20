@@ -1,0 +1,6 @@
+file(GLOB_RECURSE XBLOSSOM_GPU_SRC_LIST "${CMAKE_CURRENT_SOURCE_DIR}/*.cu")
+message(STATUS "Building XblsmGpuLib for XB++ GPU")
+add_library(XblsmGpuLib SHARED ${XBLOSSOM_GPU_SRC_LIST})
+#target_link_libraries(XblsmGpuLib PUBLIC ${GLOG_LIBRARIES})
+target_link_libraries(XblsmGpuLib PUBLIC glog::glog)
+target_include_directories(XblsmGpuLib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../include")

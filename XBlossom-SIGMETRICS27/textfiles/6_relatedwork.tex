@@ -1,0 +1,55 @@
+\section{Related Work}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Blossom algorithm
+% Sequential versions
+\textbf{Blossom Algorithms.}
+The blossom algorithm~\cite{edmonds1965paths} is foundational for computing maximum matchings in general graphs. Subsequent work improves its sequential performance through optimized data structures and algorithmic refinements~\cite{gabow1976efficient, gabow1984efficient, gabow1990data, gabow1991faster, blum2015maximum}. Despite these advances, Edmonds’ algorithm remains the dominant practical framework.
+% Parallel versions
+Parallel implementations have also been explored~\cite{Stanford_2016, Wayne_2024, fan2025x}. Among them, X-Blossom removes recursion and reformulates blossom handling, enabling GPU-oriented implementations of maximum matching in general graphs.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% BFS
+\noindent
+\textbf{BFS.}
+As a fundamental graph traversal primitive, BFS has been studied extensively.
+Most systems implement BFS in a level-synchronous manner, advancing a frontier level by level~\cite{bfs_levelsync}.
+Direction-optimizing BFS (DOBFS) improves performance by switching between top-down push and bottom-up pull to reduce redundant edge examinations~\cite{beamer2011searching,beamer2013direction}. Subsequent work improves frontier representations (sparse vs.\ dense)~\cite{bfs_standford,shun2013ligra,shun2015ligraplus}, reduces contention (e.g., bitmap visited states and fewer atomics)~\cite{bfs_agarwal}, and enhances locality and scalability via frontier reordering and NUMA-aware scheduling~\cite{bfs_locality,bfs_numa,zhang2015numa,arai2016rabbit}. Related implementations appear across distributed systems (Pregel~\cite{malewicz2010pregel}, GraphLab~\cite{low2012graphlab}, PowerGraph~\cite{gonzalez2012powergraph}, Gemini~\cite{zhu2016gemini}), shared-memory CPU frameworks (Galois~\cite{nguyen2013galois}, Ligra/Ligra+~\cite{shun2013ligra,shun2015ligraplus}, Julienne~\cite{ligra_julienne}, Aspen~\cite{ligra_aspen}), and GPU frameworks (Gunrock~\cite{wang2016gunrock}, Groute~\cite{ben2017groute}, Lux~\cite{jia2017lux}, SEP-Graph~\cite{wang2019sep}). Finally, several systems auto-tune these choices for hardware- and graph-specific implementations~\cite{zhang2018graphit,graphit_ordered2020,graphit_gpu,graphit_novelarch}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SSSP
+\noindent
+\textcolor{blue}{\textbf{SSSP and MSSP.}
+SSSP extends BFS-style traversal to weighted graphs and is commonly optimized around the tension between priority ordering, redundant work, and exposed parallelism.
+Classical approaches include Dijkstra's priority-ordered algorithm and parallel Dijkstra variants~\cite{dijkstra1959note,crauser1998parallelization}, while $\Delta$-stepping uses bucketed relaxation to trade exact priority order for parallel work~\cite{meyer2003delta}.
+Subsequent multicore SSSP techniques refine this trade-off through radius/stepping variants, DSMR, relaxed priority schedulers such as SprayList and MultiQueues, and Wasp's priority-aware work stealing~\cite{blelloch2016radius,maleki2016dsmr,dong2021efficient,alistarh2015spraylist,rihani2015multiqueues,postnikova2022multiqueues,dantonio2025wasp}.
+SSSP implementations also appear in GAP, GBBS, Galois, Ligra, Gunrock, and GraphIt, where scheduling choices balance locality, synchronization, load balance, and redundant relaxation~\cite{azad2020gap,dhulipala2021gbbs,nguyen2013galois,shun2013ligra,wang2016gunrock,zhang2018graphit}.
+On GPUs, work-efficient methods such as Workfront Sweep, Near-Far, and Bucketing reduce redundant relaxation while exposing parallel work~\cite{davidson2014work}; later GPU SSSP work improves scheduler and worklist quality through asynchronous dynamic $\Delta$-stepping, bucket-aware execution, dynamic-stepping heuristics, and multi-level multi-queue designs~\cite{wang2021fastsssp,zhang2023bucketaware,yu2025heuristic,hu2026mlmq}.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MSSP
+\textcolor{blue}{MSSP has been studied as both a planar-graph primitive and batched SSSP in general graph analytics.
+Planar-graph MSSP techniques compactly represent shortest-path trees for all boundary-face sources and compute distances from those roots ~\cite{klein2005multiple}.
+This line of work has also been extended to embedded-graph MSSP and linear-time algorithms for unit-weight planar MSSP~\cite{cabello2013multiple,eisenstat2013linear}.
+Beyond these specialized techniques, general graph analytics often treats MSSP as batched shortest-distance computation, using batched Dijkstra and Bellman--Ford variants~\cite{then2017batched}.
+This batched view also aligns with frameworks supporting MSSP through frontier-based traversal operators and scheduling abstractions~\cite{shun2013ligra,wang2016gunrock,zhang2018graphit}.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CPU and GPU analysis => Debunking
+\noindent
+\textbf{The Platform Selection.}
+%The CPU versus GPU detbate has remained heated for more than two decades. 
+% GPU is fast
+With programmable GPUs, many domain experts rewrote performance-critical kernels for massive parallelism and reported striking speedups across diverse domains such as networking ~\cite{gpu_network_1,gpu_network_2}, databases analytics ~\cite{gpu_db_1,gpu_db_2}, and classic algorithmic primitives ~\cite{gpu_algo_1,gpu_algo_2}. 
+However, early claims of substantial GPU performance advantages ~\cite{gpuIsFast_che,gpuIsFast_ryoo} motivated systematic CPU-GPU comparisons. 
+% CPU
+Meanwhile, CPUs have continued to evolve, adopting wider SIMD vectors~\cite{cpu_simd_1,cpu_simd_2} and integrating higher-bandwidth memory technologies~\cite{cpu_hbm_1,cpu_hbm_2}. 
+Recent CPU-centric studies also report strong performance and energy efficiency across modern scientific and memory-bound workloads~\cite{cpu_perf_1}, and in some cases, CPU kernels can even rival or outperform GPU counterparts~\cite{cpu_over_gpu_1,cpu_over_gpu_2,cpu_over_gpu_3}.
+% Platform Selecition
+%These ongoing comparisons have motivated more rigorous CPU–GPU evaluations that emphasize architecture-aware optimization and insightful interpretation metrics, rather than relying on raw runtime speedups alone.
+A study has reexamined early reports of dramatic GPU gains~\cite{gpuIsFast_che,gpuIsFast_ryoo}, showing that many such speedups shrink markedly when CPU and GPU implementations are optimized to a comparable level and evaluated fairly with respect to architectural constraints~\cite{lee2010debunking}.
+The importance of including host--device data transfer overheads in end-to-end measurements is also emphasized ~\cite{gregg2011transfer}. 
+Power and energy efficiency have also been studied to inform system design~\cite{gpu_energy}, while newer interpretation metrics (e.g., peak-based crossover) help determine when GPUs outperform CPUs for batch workloads~\cite{peek_metrics2025}.
+Finally, standardized benchmark suites support comparable cross-platform evaluation, including GAP for graph analytics~\cite{benchmark_gap,benchmark_gap_eval} and MLPerf for machine learning~\cite{benchmark_mlperf,benchmark_mlperfhpc}. 
+
+%These related efforts focus on software-level optimizations and are largely case-specific. In contrast, our profiling metrics capture critical architectural factors governing program execution, quantify hardware resource utilization, and assess workload suitability for either multicore CPUs or GPUs.
+All of the aforementioned related efforts focus on software-level optimizations and are largely case-specific. In contrast, our profiling metrics capture the critical architectural factors governing program execution, quantifying hardware resource utilization levels and enabling a systematic assessment of workload suitability for either multicore CPUs or GPUs.

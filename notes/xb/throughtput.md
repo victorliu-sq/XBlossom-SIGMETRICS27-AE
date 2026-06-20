@@ -1,0 +1,1 @@
+Let's handle try to compute the Liga-BFS and Gunrock-BFS in the same way to print the same information. Please first revise ligra-BFS and Gunrock-BFS first to print these infomration. Agian, you should handle the # of edges handles by current viisted nodes instead of total amount of edges. After that add them to epxr_11 as well

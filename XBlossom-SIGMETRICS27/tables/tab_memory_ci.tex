@@ -1,0 +1,51 @@
+\begin{table}[H]
+\Huge
+\centering
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.0}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{l|cccc|cccc|cccc}
+\toprule
+ & \multicolumn{4}{c|}{\textbf{CPU LLC Miss Rate (\%)}}
+ & \multicolumn{4}{c|}{\textbf{CPU LLC Miss Freq. (MillMiss/s)}}
+ & \multicolumn{4}{c}{\textbf{GPU Effective Memory Bandwidth (GB/s)}} \\
+\cmidrule(lr){2-5} \cmidrule(lr){6-9} \cmidrule(lr){10-13}
+Dataset &
+BFS-Ligra &
+SSSP-Ligra &
+MSSP-Ligra &
+XB-Pro &
+BFS-Ligra &
+SSSP-Ligra &
+MSSP-Ligra &
+XB-Pro &
+BFS-Gunrock &
+SSSP-Gunrock &
+MSSP-Gunrock &
+XB++ \\
+\midrule
+GPlus         & 8.07 $\pm$ 0.2440 & 1.05 $\pm$ 0.0220 & 1.01 $\pm$ 0.0156 & 0.38 $\pm$ 0.000248 & 14.62 $\pm$ 0.4870 & 10.09 $\pm$ 0.2040 & 10.64 $\pm$ 1.253 & 0.44 $\pm$ 0.004000 & 31.22 $\pm$ 0.0860 & 47.19 $\pm$ 0.1640 & 57.83 $\pm$ 1.783 & 53.79 $\pm$ 2.238 \\
+Twitch        & 1.27 $\pm$ 0.0158 & 0.53 $\pm$ 0.006680 & 0.53 $\pm$ 0.0177 & 0.47 $\pm$ 0.000248 & 6.08 $\pm$ 0.1590 & 3.67 $\pm$ 0.0580 & 4.87 $\pm$ 0.1700 & 0.79 $\pm$ 0.0120 & 24.11 $\pm$ 0.0873 & 37.22 $\pm$ 0.1553 & 40.98 $\pm$ 0.6989 & 42.20 $\pm$ 2.258 \\
+Amazon        & 0.02 $\pm$ 0.005292 & 0.02 $\pm$ 0.001909 & 0.02 $\pm$ 0.002063 & 0.15 $\pm$ 0.000304 & 0.06 $\pm$ 0.0200 & 0.08 $\pm$ 0.0100 & 0.16 $\pm$ 0.0150 & 0.44 $\pm$ 0.001000 & 7.71 $\pm$ 0.0575 & 11.62 $\pm$ 0.0746 & 15.97 $\pm$ 0.3231 & 49.05 $\pm$ 1.171 \\
+HiggsNets     & 4.67 $\pm$ 0.1282 & 1.66 $\pm$ 0.0375 & 2.59 $\pm$ 0.0278 & 0.84 $\pm$ 0.001038 & 5.42 $\pm$ 0.1730 & 2.08 $\pm$ 0.0470 & 3.52 $\pm$ 0.0490 & 1.71 $\pm$ 0.008000 & 37.80 $\pm$ 0.4763 & 57.54 $\pm$ 0.7033 & 62.76 $\pm$ 2.955 & 98.97 $\pm$ 1.768 \\
+Youtube       & 0.39 $\pm$ 0.0309 & 0.26 $\pm$ 0.0133 & 0.34 $\pm$ 0.0130 & 1.47 $\pm$ 0.002584 & 0.73 $\pm$ 0.0550 & 0.51 $\pm$ 0.0250 & 0.74 $\pm$ 0.0340 & 3.49 $\pm$ 0.0130 & 21.45 $\pm$ 0.2377 & 32.38 $\pm$ 0.3825 & 40.28 $\pm$ 1.234 & 195.84 $\pm$ 4.916 \\
+Hyperlink     & 6.97 $\pm$ 0.0763 & 2.55 $\pm$ 0.0219 & 2.70 $\pm$ 0.0174 & 5.97 $\pm$ 0.000877 & 32.56 $\pm$ 0.3680 & 10.85 $\pm$ 2.590 & 11.60 $\pm$ 1.575 & 22.68 $\pm$ 0.1110 & 73.77 $\pm$ 0.5441 & 110.64 $\pm$ 0.6616 & 126.66 $\pm$ 3.334 & 251.92 $\pm$ 2.170 \\
+Wikipedia     & 2.17 $\pm$ 0.1233 & 2.82 $\pm$ 0.0505 & 3.53 $\pm$ 0.0462 & 5.63 $\pm$ 0.005994 & 4.76 $\pm$ 0.2720 & 3.15 $\pm$ 0.0420 & 3.40 $\pm$ 0.0610 & 10.08 $\pm$ 0.0580 & 21.74 $\pm$ 0.0902 & 32.57 $\pm$ 0.1072 & 52.23 $\pm$ 1.796 & 258.48 $\pm$ 7.399 \\
+Stackoverflow & 6.17 $\pm$ 0.0357 & 1.47 $\pm$ 0.0105 & 1.60 $\pm$ 0.0208 & 7.58 $\pm$ 0.001202 & 73.47 $\pm$ 0.5900 & 12.49 $\pm$ 0.1260 & 14.09 $\pm$ 0.1960 & 25.87 $\pm$ 0.0990 & 83.45 $\pm$ 0.3929 & 123.36 $\pm$ 0.3912 & 159.40 $\pm$ 3.198 & 343.14 $\pm$ 5.150 \\
+Patent        & 4.37 $\pm$ 0.0315 & 2.41 $\pm$ 0.008496 & 2.41 $\pm$ 0.0150 & 7.82 $\pm$ 0.001937 & 78.63 $\pm$ 2.341 & 45.88 $\pm$ 1.935 & 41.43 $\pm$ 2.687 & 33.15 $\pm$ 0.1450 & 75.35 $\pm$ 0.2747 & 116.81 $\pm$ 0.4446 & 198.44 $\pm$ 2.952 & 424.13 $\pm$ 10.13 \\
+Livejournal   & 27.05 $\pm$ 0.2307 & 3.07 $\pm$ 0.0298 & 3.16 $\pm$ 0.0350 & 13.52 $\pm$ 0.002205 & 112.55 $\pm$ 5.050 & 18.32 $\pm$ 0.7180 & 23.74 $\pm$ 1.492 & 63.15 $\pm$ 0.2750 & 123.45 $\pm$ 0.4561 & 188.33 $\pm$ 0.9936 & 314.74 $\pm$ 4.008 & 520.45 $\pm$ 3.829 \\
+\midrule
+Average       & 6.12 & 1.58 & 1.79 & 4.38 & 32.89 & 10.71 & 11.42 & 16.18 & 50.01 & 75.77 & 106.93 & 223.80 \\
+\bottomrule
+\end{tabular}
+}
+\captionsetup{skip=4pt}
+\caption{
+Comparison of CPU cache behavior and GPU memory bandwidth for BFS, SSSP, MSSP, and X-Blossom variants.
+CPU metrics report LLC miss rate and LLC miss frequency in million misses per second, while GPU metrics report effective memory bandwidth.
+Values are reported as mean $\pm$ 95\% confidence interval over 20 rounds.
+Rows follow increasing node count.
+}
+\label{tab:memory-ci}
+\vspace{-4pt}
+\end{table}

@@ -1,0 +1,9 @@
+Now run remote-cpu-8_runtime_four: remote-build-cpu ./expr/remote/remote_run.sh cpu 8_runtime_four ./expr/remote/analysis-aws-m7i/8_runtime_four/RUN_xb_pro_time.sh ./expr/remote/analysis-aws-m7i/8_runtime_four/RUN_ligra_four_time.sh
+remote-cpu-9_inst_rate_four: remote-build-cpu ./expr/remote/remote_run.sh cpu 9_inst_rate_four ./expr/remote/analysis-aws-m7i/9_inst_rate_four/RUN_xb_pro_inst.sh ./expr/remote/analysis-aws-m7i/9_inst_rate_four/RUN_ligra_four_inst.sh
+remote-cpu-10_memory_four: remote-build-cpu ./expr/remote/remote_run.sh cpu 10_memory_four ./expr/remote/analysis-aws-m7i/10_memory_four/RUN_xb_pro_mem.sh ./expr/remote/analysis-aws-m7i/10_memory_four/RUN_ligra_four_mem.sh and remote-gpu-8_runtime_four: remote-build-gpu ./expr/remote/remote_run.sh gpu 8_runtime_four ./expr/remote/analysis-aws-g7e/8_runtime_four/RUN_xb_pp_time.sh ./expr/remote/analysis-aws-g7e/8_runtime_four/RUN_gunrock_four_time.sh
+remote-gpu-9_inst_rate_four: remote-build-gpu ./expr/remote/remote_run.sh gpu 9_inst_rate_four ./expr/remote/analysis-aws-g7e/9_inst_rate_four/RUN_xb_pp_inst.sh ./expr/remote/analysis-aws-g7e/9_inst_rate_four/RUN_gunrock_four_inst.sh
+remote-gpu-10_memory_four: remote-build-gpu ./expr/remote/remote_run.sh gpu 10_memory_four ./expr/remote/analysis-aws-g7e/10_memory_four/RUN_xb_pp_mem.sh ./expr/remote/analysis-aws-g7e/10_memory_four/RUN_gunrock_four_mem.sh
+and for me and fix all issues you encotunered until you fetch all rsutls of tehm and merge results using " remote-merge-8_runtime_four: ./expr/remote/analysis-merge/8_runtime_four/RUN_merge.sh
+remote-merge-9_inst_rate_four: ./expr/remote/analysis-merge/9_inst_rate_four/RUN_merge.sh
+remote-merge-10_memory_four: ./expr/remote/analysis-merge/10_memory_four/RUN_merge.sh
+""

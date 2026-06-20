@@ -1,0 +1,138 @@
+#ifndef XBLOSSOM_NB_H
+#define XBLOSSOM_NB_H
+#include "max_match_engine.h"
+#include "path_table/path_table.h"
+
+namespace zblossom {
+  class XBlossomEngineNB : public SecondaryMaximumMatchingEngine {
+  public:
+    XBlossomEngineNB() = delete;
+
+    XBlossomEngineNB(const HGraph &g, size_t num_threads);
+
+    void FindAugmentingPath(Vector<AugPath> &aug_path_vec, const Matching &matching) override;
+
+    void FlipAugmentingPath(const Vector<AugPath> &aug_path_vec, Matching &matching) override;
+
+    void PrintTimingSummary() const {
+      auto augmenting_path_time_ms = this->time_augmenting_path / 1e6;
+      auto expand_time_ms = this->time_expand / 1e6;
+      auto blossom_time_ms = this->time_blossom / 1e6;
+      LOG(INFO) << "XBlossomEngineNB Timing Summary:";
+      LOG(INFO) << "Augmenting Path: " << augmenting_path_time_ms << " ms";
+      LOG(INFO) << "Expand: " << expand_time_ms << " ms";
+      LOG(INFO) << "Blossom: " << blossom_time_ms << " ms";
+      LOG(INFO) << "Total Time: " << augmenting_path_time_ms + expand_time_ms + blossom_time_ms << " ms";
+    }
+
+    void PrintProfilingSummary() const {
+#ifdef MM_PROFILE
+      LOG(INFO) << "---------------------- Profiling Summary ----------------------";
+      size_t num_iterations = augmenting_path_stats_.size();
+      for (size_t i = 0; i < num_iterations; ++i) {
+        LOG(INFO) << "Iteration " << i + 1 << ":";
+
+        auto [aug_total, aug_effective] = augmenting_path_stats_[i];
+        LOG(INFO) << "  Augmenting Path: " << aug_effective << " effective / "
+            << aug_total << " total pairs ("
+            << 100.0 * aug_effective / (aug_total ? aug_total : 1) << "% efficiency)";
+
+        auto [expand_total, expand_effective] = expand_stats_[i];
+        LOG(INFO) << "  Expansion: " << expand_effective << " effective / "
+            << expand_total << " total pairs ("
+            << 100.0 * expand_effective / (expand_total ? expand_total : 1) << "% efficiency)";
+
+        auto [blossom_total, blossom_effective] = blossom_stats_[i];
+        LOG(INFO) << "  Blossom: " << blossom_effective << " effective / "
+            << blossom_total << " total pairs ("
+            << 100.0 * blossom_effective / (blossom_total ? blossom_total : 1) << "% efficiency)";
+      }
+      LOG(INFO) << "---------------------------------------------------------------";
+#endif
+    }
+
+  private:
+    // ---------------------------------------------------------
+    ns_t time_total{0};
+    ns_t time_augmenting_path{0};
+    ns_t time_expand{0};
+    ns_t time_blossom{0};
+
+    // For Degree of Parallelism analysis
+    Vector<Pair<size_t, size_t> > augmenting_path_stats_{};
+    Vector<Pair<size_t, size_t> > expand_stats_{};
+    Vector<Pair<size_t, size_t> > blossom_stats_{};
+
+    // For Load Balance analysis
+    // Vector<Vector<size_t> > augmenting_path_w_histogram_{};
+    // Vector<Vector<size_t> > expand_w_histogram_{};
+    // Vector<Vector<size_t> > blossom_w_histogram_{};
+
+    // ---------------------------------------------------------
+    host_graph_t graph_;
+
+    size_t num_threads_;
+    Vector<SThread> threads_;
+
+    size_t nnodes_;
+
+    // Data structures for FindAugmentingPath
+    // Vector<Vector<index_t> > path_table_;
+    host::PathTable path_table_;
+
+    Vector<index_t> even_nodes_;
+    Vector<index_t> new_even_nodes_from_expansion_;
+    Vector<index_t> new_even_nodes_from_blossom_;
+
+    Vector<bool> is_even_;
+    Vector<index_t> tree_roots_;
+
+    Vector<index_t> blossom_to_base_;
+
+    Vector<AtomicLock> atomic_locks_tree_;
+    Vector<AtomicLock> atomic_locks_match_;
+    Vector<AtomicLock> atomic_locks_odd_nodes_;
+
+    // For implementation of FindAugmentingPath
+    bool FindAugmentingPathFromAlternatingForest(Vector<AugPath> &aug_path_vec);
+
+    void ExpandAlternatingForest(const Matching &matching);
+
+    void TransformOddNodesInBlossom();
+
+    // Helper function
+    void InitAlternatingForest(const Matching &matching);
+
+    inline void UpdateEvenNodes() {
+      even_nodes_.clear();
+
+      even_nodes_.insert(even_nodes_.end(),
+                         new_even_nodes_from_expansion_.begin(),
+                         new_even_nodes_from_expansion_.end());
+
+      even_nodes_.insert(even_nodes_.end(),
+                         new_even_nodes_from_blossom_.begin(),
+                         new_even_nodes_from_blossom_.end());
+    }
+
+    inline bool IsUnmatched(index_t i, const Matching &matching) {
+      return matching[i] == nnodes_;
+    }
+
+    inline bool IsInForest(index_t i) {
+      return tree_roots_[i] != nnodes_;
+    }
+
+    inline bool HasEvenNodes() {
+      return even_nodes_.size() > 0;
+    }
+
+    inline void JoinAllThreads() {
+      for (auto &thread: threads_) {
+        thread.join();
+      }
+    }
+  };
+}
+
+#endif //XBLOSSOM_NB_H

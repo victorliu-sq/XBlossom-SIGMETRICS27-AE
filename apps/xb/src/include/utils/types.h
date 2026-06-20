@@ -1,0 +1,4 @@
+#ifndef X_BLOSSOM_TYPES_H
+#define X_BLOSSOM_TYPES_H
+
+#endif //X_BLOSSOM_TYPES_H

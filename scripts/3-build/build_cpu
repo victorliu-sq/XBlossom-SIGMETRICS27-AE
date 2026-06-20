@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+BUILD_DIR="${REPO_DIR}/build"
+
+TARGETS=(
+# XB-Pro CPU runners
+  run_xb_pro_by_dataset
+  run_xb_by_dataset
+  run_xb_pro_peredge_by_dataset
+  run_xb_pro_pernode_by_dataset
+# Ligra OpenMP apps
+  ligra_bfs
+  ligra_bc
+  ligra_sssp
+  ligra_multisssp
+  ligra_bfs_throughput
+  ligra_bc_throughput
+  ligra_sssp_throughput
+  ligra_multisssp_throughput
+)
+
+echo "[BUILD-CPU] REPO_DIR is ${REPO_DIR}"
+echo "[BUILD-CPU] Configure CPU benchmark components: XB-Pro and Ligra BFS/BC/SSSP"
+
+cmake -S "${REPO_DIR}" -B "${BUILD_DIR}" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DUSE_CPU=ON \
+  -DUSE_GPU=OFF \
+  -DBUILD_APP_LIGRA=ON \
+  -DBUILD_APP_GUNROCK=OFF
+
+echo "[BUILD-CPU] Build CPU benchmark targets"
+cmake --build "${BUILD_DIR}" --target "${TARGETS[@]}" --parallel
+
+echo "[BUILD-CPU] Build Complete"

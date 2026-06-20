@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ============================================================
+# Run XBPro on all real-world DATASETS.
+#   (1) Measure runtime once
+#   (2) Collect perf counters for 10 rounds
+#   (3) Analyze results with Python script
+# ============================================================
+
+XB_PRO_BIN="build/bin/run_xb_pro_by_dataset"
+METRICS_DIR="tmp/xb_pro_metrics_lock"
+PYTHON_SCRIPT="expr/xb_pro/RUN_xb_pro_all_datasets_intel_inst_lock_analysis.py"
+SUMMARY_CSV="$METRICS_DIR/_xb_pro_summary.csv"
+
+DATASETS=(
+  Amazon
+  GPlus
+  HiggsNets
+  Hyperlink
+  Livejournal
+  Patent
+  Stackoverflow
+  Twitch
+  Wikipedia
+  Youtube
+)
+
+# clean all previous data
+rm -rf "$METRICS_DIR"
+mkdir -p "$METRICS_DIR"
+
+for DATASET in "${DATASETS[@]}"; do
+  echo "============================================================"
+  echo "▶️  Running DATASET: $DATASET"
+  echo "------------------------------------------------------------"
+
+  TIMING_OUT="$METRICS_DIR/xb_pro_${DATASET}_timing.txt"
+  PROFILER_OUT="$METRICS_DIR/xb_pro_${DATASET}_profiling.txt"
+
+  : > "$TIMING_OUT"
+  : > "$PROFILER_OUT"
+
+  ROUNDS=10
+
+  echo "📊  Profiling $DATASET ($ROUNDS rounds)..."
+  perf stat -a -x, \
+      -e instructions \
+      -e cpu_core/mem_inst_retired.lock_loads/ \
+      -e cpu_core/LLC-load-misses/,cpu_core/LLC-loads/ \
+      -o "$PROFILER_OUT" \
+      -- $XB_PRO_BIN --dataset=$DATASET --rounds=$ROUNDS | tee -a "$TIMING_OUT"
+
+  echo "📈  Aggregating results for dataset $DATASET..."
+  conda run -n xb-env python3 "$PYTHON_SCRIPT" \
+      "$DATASET" \
+      "$TIMING_OUT" \
+      "$PROFILER_OUT" \
+      "$SUMMARY_CSV"
+
+done
+
+echo "============================================================"
+echo "🎉 All DATASETS processed. Summary saved at: $SUMMARY_CSV"
+echo "============================================================"

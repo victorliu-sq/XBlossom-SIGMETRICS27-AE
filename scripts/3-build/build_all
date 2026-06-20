@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+BUILD_DIR="${REPO_DIR}/build"
+
+TARGETS=(
+# X-Blossom: Table 1
+  run_xb_pp_by_dataset
+  run_xb_pro_by_dataset
+# X-Blossom: Table 2
+  run_xb_pp_nr_by_dataset
+  run_xb_by_dataset
+# X-Blossom: Table 3
+  run_xb_pro_peredge_by_dataset
+  run_xb_pro_pernode_by_dataset
+  run_xb_pp_peredge_by_dataset
+  run_xb_pp_pernode_by_dataset
+# Ligra OpenMP apps
+  ligra_bfs
+  ligra_bc
+  ligra_sssp
+  ligra_multisssp
+  ligra_bfs_throughput
+  ligra_bc_throughput
+  ligra_sssp_throughput
+  ligra_multisssp_throughput
+# Gunrock GPU apps
+  bfs
+  bc
+  sssp
+  multi_sssp
+  bfs_throughput
+  bc_throughput
+  sssp_throughput
+  multi_sssp_throughput
+)
+
+echo "[BUILD] REPO_DIR is ${REPO_DIR}"
+echo "[BUILD] Configure root project"
+
+cmake -S "${REPO_DIR}" -B "${BUILD_DIR}" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DUSE_CPU=ON \
+  -DUSE_GPU=ON \
+  -DBUILD_APP_LIGRA=ON \
+  -DBUILD_APP_GUNROCK=ON
+
+echo "[BUILD] Build all benchmark targets"
+cmake --build "${BUILD_DIR}" --target "${TARGETS[@]}" --parallel
+
+echo "[BUILD] Build Complete"
