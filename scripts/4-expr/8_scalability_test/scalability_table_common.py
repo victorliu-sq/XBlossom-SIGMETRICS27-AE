@@ -106,25 +106,25 @@ def read_table(metric_dir, datasets, configs, prefix, suffix):
     return [row for _, row in rows]
 
 
-def write_tex(rows, configs, output_path, title, config_label):
-    tex = build_tex(rows, configs, output_path, title, config_label)
+def write_tex(rows, configs, output_path, title, config_label, header_label, tabcolsep):
+    tex = build_tex(rows, configs, output_path, title, config_label, header_label, tabcolsep)
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w") as f:
         f.write(tex)
 
 
-def build_tex(rows, configs, output_path, title, config_label):
+def build_tex(rows, configs, output_path, title, config_label, header_label, tabcolsep):
     column_spec = "l|" + "c" * len(configs)
     lines = [
         r"\begin{table}[H]",
         r" \scriptsize",
         r" \centering",
-        r" \setlength{\tabcolsep}{3pt}",
+        rf" \setlength{{\tabcolsep}}{{{tabcolsep}}}",
         r" \renewcommand{\arraystretch}{1.0}",
         r" \resizebox{\columnwidth}{!}{%",
         rf" \begin{{tabular}}{{{column_spec}}}",
         r" \toprule",
-        " Dataset & " + " & ".join(str(config) for config in configs) + r" \\",
+        f" {header_label} & " + " & ".join(str(config) for config in configs) + r" \\",
         r" \midrule",
     ]
 
@@ -166,6 +166,8 @@ def parse_args():
     parser.add_argument("--suffix", required=True)
     parser.add_argument("--title", required=True)
     parser.add_argument("--config-label", required=True)
+    parser.add_argument("--header-label", default="Dataset")
+    parser.add_argument("--tabcolsep", default="3pt")
     return parser.parse_args()
 
 
@@ -178,7 +180,15 @@ def main():
         args.prefix,
         args.suffix,
     )
-    write_tex(rows, args.configs, args.output, args.title, args.config_label)
+    write_tex(
+        rows,
+        args.configs,
+        args.output,
+        args.title,
+        args.config_label,
+        args.header_label,
+        args.tabcolsep,
+    )
     print(f"[OK] Wrote {args.output}")
 
 
