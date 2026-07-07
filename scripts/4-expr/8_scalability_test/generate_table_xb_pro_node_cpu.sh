@@ -22,6 +22,8 @@ run_python "${SCRIPT_DIR}/generate_table_xb_pro_node_cpu.py" \
     --prefix "xb_pro_node" \
     --suffix "t" \
     --title "XB-Pro node-level CPU scalability" \
-    --config-label "CPU thread counts"
+    --config-label "CPU thread counts" \
+    --header-label "CPU Threads" \
+    --tabcolsep "6pt"
 
 echo "LaTeX table saved at ${OUTPUT_TEX}"
