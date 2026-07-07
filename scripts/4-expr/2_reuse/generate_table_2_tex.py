@@ -118,11 +118,11 @@ def write_tex(rows, output_path, include_ci=False):
         r" XB &",
         r" XB-Pro &",
         r" Speedup &",
-        r" ReuseRatio (\%) &",
+        r" Reuse-Ratio (\%) &",
         r" XB-GPU &",
         r" XB++ &",
         r" Speedup &",
-        r" ReuseRatio (\%) \\",
+        r" Reuse-Ratio (\%) \\",
         r" \midrule",
     ])
 
@@ -143,11 +143,11 @@ def write_tex(rows, output_path, include_ci=False):
         r" Performance impact of alternating-tree reuse in X-Blossom on CPUs and GPUs.",
         r" All reported runtimes of XB, XB-Pro, XB-GPU, and XB++ are in seconds.",
         r" CPU speedup is computed as XB/XB-Pro; GPU speedup is computed as XB-GPU/XB++.",
-        r" ReuseRatio reports the percentage of alternating-tree nodes that are reused rather than reset.",
+        r" Reuse-Ratio reports the percentage of alternating-tree nodes that are reused rather than reset.",
     ])
 
     if include_ci:
-        lines.append(r" Runtime and ReuseRatio entries are reported as mean $\pm$ 95\% confidence interval over 20 rounds.")
+        lines.append(r" Runtime and Reuse-Ratio entries are reported as mean $\pm$ 95\% confidence interval over 20 rounds.")
 
     lines.extend([
         r" }",
