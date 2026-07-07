@@ -30,6 +30,8 @@ run_python "${SCRIPT_DIR}/generate_table_xb_pp_node_gpu_sm.py" \
     --prefix "xb_pp_node" \
     --suffix "sms" \
     --title "XB++ node-level GPU scalability" \
-    --config-label "maximum GPU SM counts"
+    --config-label "maximum GPU SM counts" \
+    --header-label "Max GPU SMs" \
+    --tabcolsep "2pt"
 
 echo "LaTeX table saved at ${OUTPUT_TEX}"
